@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hoely — Your Thai & Asian Kitchen Companion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+            body: ['Inter', '"Noto Sans Thai"', 'sans-serif'],
+            thai: ['"Noto Sans Thai"', 'sans-serif'],
+          },
+          colors: {
+            warm: {
+              50: '#FFFBF5',
+              100: '#FFF5E6',
+              200: '#FFE8C8',
+              300: '#FDDAA5',
+              400: '#F5C06A',
+              500: '#E8A33E',
+              600: '#C2410C',
+              700: '#9A3412',
+              800: '#6B2008',
+              900: '#3D1204',
+            },
+            spice: { DEFAULT: '#C2410C', light: '#EA580C', dark: '#9A3412' },
+            herb: { DEFAULT: '#059669', light: '#10B981', dark: '#047857' },
+            gold: { DEFAULT: '#D4A136', light: '#F5C06A', dark: '#A67C1A' },
+            cream: '#FFFBF5',
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', 'Noto Sans Thai', sans-serif; background: #FFFBF5; color: #2D1810; overflow-x: hidden; }
+
+    /* ── Frosted Glass ── */
+    .frost {
+      background: rgba(255, 251, 245, 0.65);
+      backdrop-filter: blur(24px) saturate(1.4);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+    .frost-card {
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 8px 40px rgba(154, 52, 18, 0.06);
+    }
+    .frost-dark {
+      background: rgba(45, 24, 16, 0.75);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .frost-gold {
+      background: rgba(212, 161, 54, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(212, 161, 54, 0.15);
+    }
+
+    /* ── Thai decorative line ── */
+    .thai-divider {
+      display: flex; align-items: center; gap: 12px; justify-content: center;
+    }
+    .thai-divider::before, .thai-divider::after {
+      content: ''; height: 1px; width: 60px;
+      background: linear-gradient(90deg, transparent, #D4A136, transparent);
+    }
+
+    /* ── Ambient blobs ── */
+    .blob {
+      position: absolute; border-radius: 50%;
+      filter: blur(100px); opacity: 0.3;
+      animation: drift 25s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    @keyframes drift {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(20px, -20px) scale(1.05); }
+      100% { transform: translate(-10px, 10px) scale(0.97); }
+    }
+
+    /* ── Cards ── */
+    .recipe-card {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    }
+    .recipe-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 60px rgba(154, 52, 18, 0.12);
+    }
+
+    .deal-badge {
+      background: linear-gradient(135deg, #C2410C, #EA580C);
+      color: white; font-weight: 700; font-size: 12px;
+      padding: 4px 12px; border-radius: 20px;
+      position: absolute; top: 12px; right: 12px;
+      box-shadow: 0 4px 12px rgba(194, 65, 12, 0.3);
+    }
+
+    /* ── Food image placeholders (gradient-based) ── */
+    .food-img-1 { background: linear-gradient(135deg, #F5C06A 0%, #EA580C 60%, #9A3412 100%); }
+    .food-img-2 { background: linear-gradient(135deg, #10B981 0%, #059669 50%, #047857 100%); }
+    .food-img-3 { background: linear-gradient(135deg, #FDDAA5 0%, #E8A33E 50%, #C2410C 100%); }
+    .food-img-4 { background: linear-gradient(135deg, #FCA5A5 0%, #DC2626 60%, #991B1B 100%); }
+    .food-img-5 { background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #D97706 100%); }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .blob, .reveal, .recipe-card { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════ NAV ═══════ -->
+  <nav class="fixed top-0 left-0 right-0 z-50 frost">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 cursor-pointer">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="18" fill="#C2410C"/>
+          <path d="M12 24C12 20 14 15 18 13C22 15 24 20 24 24" stroke="#FDDAA5" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="18" cy="11" r="2.5" fill="#FDDAA5"/>
+          <path d="M15 24C15 22 16 19 18 18C20 19 21 22 21 24" stroke="#FDDAA5" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+        <span class="font-serif text-2xl italic text-warm-800">Hoely</span>
+      </a>
+      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-warm-700">
+        <a href="recipes.html" class="hover:text-spice transition-colors cursor-pointer">Recipes</a>
+        <a href="#deals" class="hover:text-spice transition-colors cursor-pointer">This Week's Deals</a>
+        <a href="#plan" class="hover:text-spice transition-colors cursor-pointer">Meal Plan</a>
+        <a href="#about" class="hover:text-spice transition-colors cursor-pointer">About</a>
+      </div>
+      <a href="recipes.html" class="bg-warm-800 hover:bg-warm-900 text-warm-100 px-5 py-2.5 rounded-full text-sm font-semibold cursor-pointer transition-colors">
+        Start Cooking
+      </a>
+    </div>
+  </nav>
+
+  <!-- ═══════ HERO ═══════ -->
+  <section class="relative min-h-screen flex items-center pt-20 overflow-hidden">
+    <div class="blob w-[600px] h-[600px] bg-warm-300 top-[-150px] right-[-200px]"></div>
+    <div class="blob w-[400px] h-[400px] bg-gold-light bottom-[10%] left-[-100px]" style="animation-delay:-8s;"></div>
+
+    <div class="max-w-7xl mx-auto px-6 w-full relative z-10">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+
+        <!-- Left: Text -->
+        <div class="max-w-xl">
+          <div class="thai-divider justify-start mb-6">
+            <span class="text-sm font-medium text-gold tracking-widest uppercase font-thai">สูตรอาหารไทย</span>
+          </div>
+
+          <h1 class="font-serif text-[clamp(3rem,7vw,5.5rem)] leading-[1.05] text-warm-900 mb-6">
+            What are we<br/>cooking <span class="italic text-spice">tonight?</span>
+          </h1>
+
+          <p class="text-lg text-warm-700/80 leading-relaxed mb-8 max-w-md">
+            Discover authentic Thai &amp; Asian recipes tailored to what's on sale at Meny and aFood this week. Real ingredients, real prices, real flavour.
+          </p>
+
+          <div class="flex flex-wrap gap-4 mb-12">
+            <a href="recipes.html" class="bg-spice hover:bg-spice-dark text-white px-8 py-4 rounded-full text-base font-semibold cursor-pointer transition-all hover:shadow-lg hover:shadow-spice/20 inline-flex items-center gap-2">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3l4 4-4 4"/><path d="M4 17V13a4 4 0 014-4h11"/></svg>
+              Explore Recipes
+            </a>
+            <a href="#deals" class="frost-card px-8 py-4 rounded-full text-base font-semibold text-warm-800 cursor-pointer transition-all hover:bg-white/70 inline-flex items-center gap-2">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              This Week's Deals
+            </a>
+          </div>
+
+          <!-- Quick stats -->
+          <div class="flex items-center gap-6 text-sm text-warm-600">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-herb/10 flex items-center justify-center">
+                <svg width="16" height="16" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <span>Prices from Meny &amp; aFood</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-spice/10 flex items-center justify-center">
+                <svg width="16" height="16" fill="none" stroke="#C2410C" stroke-width="2" stroke-linecap="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" transform="scale(0.67)"/></svg>
+              </div>
+              <span>Thai &amp; Asian cuisine</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Hero food grid -->
+        <div class="relative hidden lg:block">
+          <div class="grid grid-cols-2 gap-4 max-w-md ml-auto">
+            <!-- Main large card — full bleed -->
+            <div class="col-span-2 recipe-card rounded-3xl overflow-hidden cursor-pointer relative food-img-1" style="min-height: 280px;">
+              <div class="deal-badge">On sale at Meny</div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent"></div>
+              <div class="absolute bottom-0 left-0 right-0 p-5">
+                <h3 class="font-serif text-2xl text-white mb-1">Pad Thai</h3>
+                <p class="text-white/70 text-sm mb-3">Classic stir-fried rice noodles with tamarind, peanuts &amp; lime</p>
+                <div class="flex items-center gap-3">
+                  <span class="frost px-2.5 py-0.5 rounded-full text-xs font-medium text-warm-800">30 min</span>
+                  <span class="frost px-2.5 py-0.5 rounded-full text-xs font-bold text-warm-900">524 kr</span>
+                  <span class="frost px-2.5 py-0.5 rounded-full text-xs text-warm-600">14 items</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Small card 1 — full bleed -->
+            <div class="recipe-card rounded-2xl overflow-hidden cursor-pointer relative food-img-2" style="min-height: 160px;">
+              <div class="deal-badge text-[10px] px-2 py-0.5">Save 54 kr</div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+              <div class="absolute bottom-0 left-0 right-0 p-3">
+                <h4 class="font-serif text-base text-white">Green Curry</h4>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="frost px-2 py-0.5 rounded-full text-[10px] font-medium text-warm-800">25 min</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Small card 2 — full bleed -->
+            <div class="recipe-card rounded-2xl overflow-hidden cursor-pointer relative food-img-4" style="min-height: 160px;">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+              <div class="absolute bottom-0 left-0 right-0 p-3">
+                <h4 class="font-serif text-base text-white">Tom Yum Soup</h4>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="frost px-2 py-0.5 rounded-full text-[10px] font-medium text-warm-800">35 min</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating frost badge -->
+          <div class="absolute -left-6 top-1/3 frost-gold px-4 py-3 rounded-2xl" style="animation: drift 6s ease-in-out infinite alternate;">
+            <div class="text-xs text-gold-dark font-medium mb-0.5">This week</div>
+            <div class="font-serif text-lg text-warm-900">7 deals</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ WEEKLY DEALS ═══════ -->
+  <section id="deals" class="py-24 px-6 relative">
+    <div class="blob w-[350px] h-[350px] bg-warm-200 top-0 right-[-80px]" style="animation-delay:-12s; opacity:0.2;"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12 reveal">
+        <div>
+          <div class="thai-divider justify-start mb-3">
+            <span class="text-xs font-medium text-gold tracking-widest uppercase">ดีลประจำสัปดาห์</span>
+          </div>
+          <h2 class="font-serif text-[clamp(2rem,4.5vw,3.5rem)] text-warm-900 leading-tight">
+            Cook more, <span class="italic text-spice">spend less</span>
+          </h2>
+          <p class="text-warm-600 mt-2 max-w-lg">Recipes built around what's on offer at Meny and aFood Market right now.</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="frost-card px-4 py-2 rounded-full text-sm font-medium text-spice cursor-pointer hover:bg-spice/5 transition-colors" aria-label="Filter by Meny">Meny</button>
+          <button class="frost-card px-4 py-2 rounded-full text-sm font-medium text-warm-600 cursor-pointer hover:bg-warm-100/50 transition-colors" aria-label="Filter by aFood">aFood</button>
+          <button class="frost-card px-4 py-2 rounded-full text-sm font-medium text-warm-600 cursor-pointer hover:bg-warm-100/50 transition-colors" aria-label="Show all deals">All</button>
+        </div>
+      </div>
+
+      <!-- Deal cards — full bleed, consistent with meal plan -->
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 reveal">
+        <!-- Deal 1 -->
+        <div class="recipe-card rounded-2xl overflow-hidden cursor-pointer relative food-img-1" style="min-height: 280px;">
+          <div class="deal-badge">-29% at Meny</div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-4">
+            <h3 class="font-serif text-lg text-white mb-0.5">Spicy Pad Thai</h3>
+            <p class="text-white/60 text-xs mb-3">Rice noodles on sale this week</p>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs font-bold text-warm-900">389 kr</span>
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs text-warm-500 line-through">548 kr</span>
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs font-medium text-herb">Save 159 kr</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deal 2 -->
+        <div class="recipe-card rounded-2xl overflow-hidden cursor-pointer relative food-img-2" style="min-height: 280px;">
+          <div class="deal-badge">-22% at aFood</div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-4">
+            <h3 class="font-serif text-lg text-white mb-0.5">Green Curry</h3>
+            <p class="text-white/60 text-xs mb-3">Coconut milk + curry paste on sale</p>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs font-bold text-warm-900">312 kr</span>
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs text-warm-500 line-through">401 kr</span>
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs font-medium text-herb">Save 89 kr</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deal 3 -->
+        <div class="recipe-card rounded-2xl overflow-hidden cursor-pointer relative food-img-5" style="min-height: 280px;">
+          <div class="deal-badge">-18% at Meny</div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-4">
+            <h3 class="font-serif text-lg text-white mb-0.5">Tom Kha Gai</h3>
+            <p class="text-white/60 text-xs mb-3">Chicken thighs discounted</p>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs font-bold text-warm-900">287 kr</span>
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs text-warm-500 line-through">350 kr</span>
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs font-medium text-herb">Save 63 kr</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deal 4 -->
+        <div class="recipe-card rounded-2xl overflow-hidden cursor-pointer relative food-img-4" style="min-height: 280px;">
+          <div class="deal-badge">-25% at aFood</div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-4">
+            <h3 class="font-serif text-lg text-white mb-0.5">Tom Yum Goong</h3>
+            <p class="text-white/60 text-xs mb-3">Shrimp + lemongrass on sale</p>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs font-bold text-warm-900">445 kr</span>
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs text-warm-500 line-through">593 kr</span>
+              <span class="frost px-2.5 py-0.5 rounded-full text-xs font-medium text-herb">Save 148 kr</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ WEEKLY MEAL PLAN ═══════ -->
+  <section id="plan" class="py-24 px-6 relative overflow-hidden">
+    <div class="blob w-[500px] h-[500px] bg-gold-light top-[-100px] left-[-200px]" style="animation-delay:-6s; opacity:0.15;"></div>
+    <div class="blob w-[350px] h-[350px] bg-warm-300 bottom-[5%] right-[-120px]" style="animation-delay:-18s; opacity:0.12;"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 reveal">
+        <div>
+          <div class="thai-divider justify-start mb-3">
+            <span class="text-xs font-medium text-gold tracking-widest uppercase">แผนอาหาร</span>
+          </div>
+          <h2 class="font-serif text-[clamp(2rem,4.5vw,3.5rem)] text-warm-900 leading-tight">
+            Your week, <span class="italic text-spice">planned</span>
+          </h2>
+          <p class="text-warm-600 mt-2 max-w-lg">Hoely picks 5 meals that reuse ingredients across the week, saving you money and reducing waste.</p>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <span class="frost-gold px-5 py-2.5 rounded-full text-sm font-semibold text-gold-dark">Week 12 &mdash; March 2026</span>
+          <span class="frost-card px-5 py-2.5 rounded-full text-sm font-semibold text-herb">701 / 800 kr</span>
+        </div>
+      </div>
+
+      <!-- Bento meal grid — hero card + side cards -->
+      <div class="grid md:grid-cols-12 gap-4 reveal">
+
+        <!-- HERO MEAL: Monday — spans 5 cols, full-bleed image -->
+        <div class="md:col-span-5 recipe-card frost-card rounded-3xl overflow-hidden cursor-pointer group relative food-img-1" style="min-height: 420px;">
+          <div class="absolute top-4 left-4 frost px-3 py-1.5 rounded-full text-xs font-bold text-spice uppercase tracking-wider">Monday</div>
+          <div class="deal-badge">-29% at Meny</div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+            <h3 class="font-serif text-3xl md:text-4xl text-white leading-tight mb-2">Pad Thai</h3>
+            <p class="text-white/70 text-sm mb-4 max-w-xs">Classic stir-fried rice noodles with tamarind, peanuts &amp; lime</p>
+            <div class="flex items-center gap-4">
+              <span class="frost px-3 py-1 rounded-full text-xs font-medium text-warm-800 flex items-center gap-1.5">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="6" r="5"/><path d="M6 3.5v2.5l1.5 1"/></svg>
+                30 min
+              </span>
+              <span class="frost px-3 py-1 rounded-full text-xs font-medium text-warm-800">Easy</span>
+              <span class="frost px-3 py-1 rounded-full text-xs font-bold text-warm-900">389 kr <span class="font-normal text-warm-500 line-through ml-0.5">548</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: 5 cards in 3-col + 2-col rows -->
+        <div class="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-4">
+
+          <!-- Tuesday -->
+          <div class="recipe-card frost-card rounded-2xl overflow-hidden cursor-pointer relative food-img-5" style="min-height: 200px;">
+            <div class="absolute top-3 left-3 frost px-2.5 py-1 rounded-full text-[10px] font-bold text-spice uppercase tracking-wider">Tue</div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-3.5">
+              <h4 class="font-serif text-base sm:text-lg text-white leading-snug">Tom Kha Gai</h4>
+              <p class="text-white/60 text-xs mt-0.5 mb-2">Coconut chicken soup</p>
+              <div class="flex items-center gap-2">
+                <span class="frost px-2 py-0.5 rounded-full text-[10px] font-medium text-warm-800 flex items-center gap-1">
+                  <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="5" r="4"/><path d="M5 3v2l1 .75"/></svg>
+                  25 min
+                </span>
+                <span class="frost px-2 py-0.5 rounded-full text-[10px] font-bold text-warm-900">287 kr</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wednesday -->
+          <div class="recipe-card frost-card rounded-2xl overflow-hidden cursor-pointer relative food-img-2" style="min-height: 200px;">
+            <div class="absolute top-3 left-3 frost px-2.5 py-1 rounded-full text-[10px] font-bold text-spice uppercase tracking-wider">Wed</div>
+            <div class="deal-badge text-[10px] px-2 py-0.5">-22% aFood</div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-3.5">
+              <h4 class="font-serif text-base sm:text-lg text-white leading-snug">Green Curry</h4>
+              <p class="text-white/60 text-xs mt-0.5 mb-2">Coconut, basil &amp; bamboo</p>
+              <div class="flex items-center gap-2">
+                <span class="frost px-2 py-0.5 rounded-full text-[10px] font-medium text-warm-800 flex items-center gap-1">
+                  <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="5" r="4"/><path d="M5 3v2l1 .75"/></svg>
+                  35 min
+                </span>
+                <span class="frost px-2 py-0.5 rounded-full text-[10px] font-bold text-warm-900">312 kr</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thursday -->
+          <div class="recipe-card frost-card rounded-2xl overflow-hidden cursor-pointer relative food-img-4" style="min-height: 200px;">
+            <div class="absolute top-3 left-3 frost px-2.5 py-1 rounded-full text-[10px] font-bold text-spice uppercase tracking-wider">Thu</div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-3.5">
+              <h4 class="font-serif text-base sm:text-lg text-white leading-snug">Tom Yum Goong</h4>
+              <p class="text-white/60 text-xs mt-0.5 mb-2">Spicy shrimp soup</p>
+              <div class="flex items-center gap-2">
+                <span class="frost px-2 py-0.5 rounded-full text-[10px] font-medium text-warm-800 flex items-center gap-1">
+                  <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="5" r="4"/><path d="M5 3v2l1 .75"/></svg>
+                  40 min
+                </span>
+                <span class="frost px-2 py-0.5 rounded-full text-[10px] font-bold text-warm-900">445 kr</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saturday — spans 2 cols, full-bleed image like the others -->
+          <div class="col-span-2 sm:col-span-2 recipe-card frost-card rounded-2xl overflow-hidden cursor-pointer relative food-img-5" style="min-height: 200px;">
+            <div class="absolute top-3 left-3 frost px-2.5 py-1 rounded-full text-[10px] font-bold text-spice uppercase tracking-wider">Sat</div>
+            <div class="deal-badge text-[10px] px-2 py-0.5">-18% Meny</div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-4">
+              <h4 class="font-serif text-lg text-white leading-snug">Korean Bibimbap</h4>
+              <p class="text-white/60 text-xs mt-0.5 mb-2.5">Rice bowl with veggies, egg &amp; gochujang</p>
+              <div class="flex items-center gap-3">
+                <span class="frost px-2.5 py-0.5 rounded-full text-[10px] font-medium text-warm-800 flex items-center gap-1">
+                  <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="5" r="4"/><path d="M5 3v2l1 .75"/></svg>
+                  45 min
+                </span>
+                <span class="frost px-2.5 py-0.5 rounded-full text-[10px] font-bold text-warm-900">356 kr</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sunday -->
+          <div class="recipe-card frost-card rounded-2xl overflow-hidden cursor-pointer relative food-img-3" style="min-height: 200px;">
+            <div class="absolute top-3 left-3 frost px-2.5 py-1 rounded-full text-[10px] font-bold text-spice uppercase tracking-wider">Sun</div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-3.5">
+              <h4 class="font-serif text-base sm:text-lg text-white leading-snug">Gyoza &amp; Miso</h4>
+              <p class="text-white/60 text-xs mt-0.5 mb-2">Handmade dumplings</p>
+              <div class="flex items-center gap-2">
+                <span class="frost px-2 py-0.5 rounded-full text-[10px] font-medium text-warm-800 flex items-center gap-1">
+                  <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="5" r="4"/><path d="M5 3v2l1 .75"/></svg>
+                  60 min
+                </span>
+                <span class="frost px-2 py-0.5 rounded-full text-[10px] font-bold text-warm-900">298 kr</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Bottom stats bar -->
+      <div class="frost-card rounded-2xl p-5 md:p-6 mt-5 reveal">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <!-- Reuse -->
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-herb/10 flex items-center justify-center shrink-0">
+              <svg width="20" height="20" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8M12 4l4 4-4 4" transform="scale(0.85) translate(1,1)"/></svg>
+            </div>
+            <div>
+              <div class="text-xs text-warm-500">Garlic reused</div>
+              <div class="text-sm font-bold text-warm-900">5 of 5 meals</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-herb/10 flex items-center justify-center shrink-0">
+              <svg width="20" height="20" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8M12 4l4 4-4 4" transform="scale(0.85) translate(1,1)"/></svg>
+            </div>
+            <div>
+              <div class="text-xs text-warm-500">Soy sauce</div>
+              <div class="text-sm font-bold text-warm-900">4 of 5 meals</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-herb/10 flex items-center justify-center shrink-0">
+              <svg width="20" height="20" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8M12 4l4 4-4 4" transform="scale(0.85) translate(1,1)"/></svg>
+            </div>
+            <div>
+              <div class="text-xs text-warm-500">Lime &amp; rice</div>
+              <div class="text-sm font-bold text-warm-900">3 of 5 meals</div>
+            </div>
+          </div>
+          <!-- Total savings -->
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-spice/10 flex items-center justify-center shrink-0">
+              <svg width="20" height="20" fill="none" stroke="#C2410C" stroke-width="2" stroke-linecap="round"><line x1="10" y1="2" x2="10" y2="18" transform="scale(0.9) translate(1,1)"/><path d="M14 6H8.5a2.5 2.5 0 000 5h3a2.5 2.5 0 010 5H6" transform="scale(0.9) translate(1,1)"/></svg>
+            </div>
+            <div>
+              <div class="text-xs text-warm-500">Reuse savings</div>
+              <div class="text-sm font-bold text-herb">-127 kr saved</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ HOW IT FEELS / FEATURES ═══════ -->
+  <section id="about" class="py-24 px-6 relative overflow-hidden">
+    <div class="blob w-[400px] h-[400px] bg-spice-light bottom-[-80px] left-[-100px]" style="animation-delay:-15s; opacity:0.1;"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+      <div class="text-center mb-14 reveal">
+        <div class="thai-divider mb-3">
+          <span class="text-xs font-medium text-gold tracking-widest uppercase">ทำอาหารง่ายขึ้น</span>
+        </div>
+        <h2 class="font-serif text-[clamp(2rem,4.5vw,3.5rem)] text-warm-900">
+          Made for <span class="italic text-spice">home cooks</span>
+        </h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6 reveal">
+        <!-- Feature 1 -->
+        <div class="frost-card rounded-3xl p-8 recipe-card relative overflow-hidden">
+          <div class="blob w-[200px] h-[200px] bg-spice-light top-[-80px] right-[-80px]" style="opacity:0.08; filter:blur(60px);"></div>
+          <div class="relative">
+            <div class="w-14 h-14 rounded-2xl frost-gold flex items-center justify-center mb-5">
+              <svg width="28" height="28" fill="none" stroke="#C2410C" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" transform="translate(2,1)"/></svg>
+            </div>
+            <h3 class="font-serif text-xl text-warm-900 mb-2">Dietary Safe</h3>
+            <p class="text-warm-600 text-sm leading-relaxed mb-4">Vegan, gluten-free, nut allergy? Every recipe adapts with smart replacements that keep the authentic flavour.</p>
+            <div class="flex gap-2 flex-wrap">
+              <span class="frost px-2.5 py-1 rounded-full text-[11px] font-medium text-warm-700">Vegan</span>
+              <span class="frost px-2.5 py-1 rounded-full text-[11px] font-medium text-warm-700">Gluten-free</span>
+              <span class="frost px-2.5 py-1 rounded-full text-[11px] font-medium text-warm-700">Nut-free</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="frost-card rounded-3xl p-8 recipe-card relative overflow-hidden">
+          <div class="blob w-[200px] h-[200px] bg-herb-light top-[-80px] right-[-80px]" style="opacity:0.08; filter:blur(60px);"></div>
+          <div class="relative">
+            <div class="w-14 h-14 rounded-2xl frost-gold flex items-center justify-center mb-5">
+              <svg width="28" height="28" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><line x1="14" y1="2" x2="14" y2="26" transform="scale(0.95)"/><path d="M19 7H11.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H8" transform="scale(0.95)"/></svg>
+            </div>
+            <h3 class="font-serif text-xl text-warm-900 mb-2">Best Prices</h3>
+            <p class="text-warm-600 text-sm leading-relaxed mb-4">Every ingredient matched to the cheapest option across Meny and aFood. Cross-store optimization finds savings you'd miss.</p>
+            <div class="frost rounded-xl px-3 py-2 inline-flex items-center gap-2">
+              <span class="text-xs text-warm-500">Avg. savings</span>
+              <span class="text-sm font-bold text-herb">-18%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="frost-card rounded-3xl p-8 recipe-card relative overflow-hidden">
+          <div class="blob w-[200px] h-[200px] bg-gold-light top-[-80px] right-[-80px]" style="opacity:0.08; filter:blur(60px);"></div>
+          <div class="relative">
+            <div class="w-14 h-14 rounded-2xl frost-gold flex items-center justify-center mb-5">
+              <svg width="28" height="28" fill="none" stroke="#D4A136" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" transform="translate(2,2) scale(0.9)"/></svg>
+            </div>
+            <h3 class="font-serif text-xl text-warm-900 mb-2">Your Taste</h3>
+            <p class="text-warm-600 text-sm leading-relaxed mb-4">Set your spice, sweetness, sourness and umami preferences once. Every recipe calibrates to your palate automatically.</p>
+            <div class="flex gap-2 flex-wrap">
+              <span class="frost px-2.5 py-1 rounded-full text-[11px] font-medium text-spice">Spice 8</span>
+              <span class="frost px-2.5 py-1 rounded-full text-[11px] font-medium text-warm-700">Sweet 3</span>
+              <span class="frost px-2.5 py-1 rounded-full text-[11px] font-medium text-warm-700">Umami 9</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ RECIPE SPOTLIGHT ═══════ -->
+  <section id="recipes" class="py-24 px-6 relative">
+    <div class="max-w-5xl mx-auto reveal">
+      <div class="rounded-3xl overflow-hidden relative food-img-3" style="min-height: 480px;">
+        <div class="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+
+        <!-- Content overlay -->
+        <div class="absolute inset-0 flex items-end md:items-center p-6 md:p-12">
+          <div class="max-w-md">
+            <span class="frost px-3 py-1.5 rounded-full text-xs font-medium text-warm-800 inline-block mb-4">Popular this week</span>
+
+            <h3 class="font-serif text-4xl md:text-5xl text-white leading-tight mb-3">Massaman Curry</h3>
+            <p class="text-white/70 text-sm mb-6 leading-relaxed">Rich, aromatic, and mildly spiced — the king of curries. Slow-cooked with peanuts, potato, and tamarind.</p>
+
+            <div class="flex gap-3 mb-6 flex-wrap">
+              <span class="frost px-3 py-1 rounded-full text-xs font-medium text-warm-800">45 min</span>
+              <span class="frost px-3 py-1 rounded-full text-xs font-medium text-warm-800">Medium</span>
+              <span class="frost px-3 py-1 rounded-full text-xs font-medium text-warm-800">4 servings</span>
+            </div>
+
+            <!-- Frosted ingredient panel -->
+            <div class="frost rounded-2xl p-4 mb-5">
+              <h4 class="text-[10px] uppercase tracking-widest text-warm-600 mb-3">Key Ingredients</h4>
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                <span class="flex items-center gap-2 text-warm-800"><span class="w-1.5 h-1.5 rounded-full bg-spice"></span>Massaman paste</span>
+                <span class="flex items-center gap-2 text-warm-800"><span class="w-1.5 h-1.5 rounded-full bg-spice"></span>Coconut milk</span>
+                <span class="flex items-center gap-2 text-warm-800"><span class="w-1.5 h-1.5 rounded-full bg-spice"></span>Beef chuck</span>
+                <span class="flex items-center gap-2 text-warm-800"><span class="w-1.5 h-1.5 rounded-full bg-spice"></span>Potato</span>
+                <span class="flex items-center gap-2 text-warm-800"><span class="w-1.5 h-1.5 rounded-full bg-herb"></span>Peanuts</span>
+                <span class="flex items-center gap-2 text-warm-800"><span class="w-1.5 h-1.5 rounded-full bg-herb"></span>Tamarind</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <button class="bg-spice hover:bg-spice-dark text-white px-6 py-3 rounded-full text-sm font-semibold cursor-pointer transition-colors">
+                View Recipe
+              </button>
+              <span class="frost px-4 py-2 rounded-full text-sm font-bold text-warm-900">467 kr <span class="font-normal text-warm-600 ml-0.5">/ 4 servings</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ CULTURAL FOOTER ═══════ -->
+  <footer class="py-16 px-6 bg-warm-900 text-warm-200/70 relative overflow-hidden">
+    <div class="blob w-[300px] h-[300px] bg-spice-dark bottom-[-100px] right-[-50px]" style="opacity:0.15;"></div>
+    <div class="blob w-[250px] h-[250px] bg-gold-dark top-[-80px] left-[-60px]" style="opacity:0.08; animation-delay:-10s;"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+      <div class="grid md:grid-cols-3 gap-12 mb-12">
+        <div>
+          <div class="flex items-center gap-2 mb-4">
+            <svg width="32" height="32" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="18" fill="#C2410C"/><path d="M12 24C12 20 14 15 18 13C22 15 24 20 24 24" stroke="#FDDAA5" stroke-width="2.5" stroke-linecap="round"/><circle cx="18" cy="11" r="2.5" fill="#FDDAA5"/></svg>
+            <span class="font-serif text-2xl italic text-warm-100">Hoely</span>
+          </div>
+          <p class="text-sm leading-relaxed max-w-xs mb-5">Authentic Thai &amp; Asian recipes matched to real grocery prices in Norway. Eat well, waste less, cook amazing.</p>
+          <div class="frost-dark rounded-xl px-4 py-3 inline-block">
+            <span class="text-xs text-warm-300">Powered by AI</span>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-serif text-warm-100 text-lg mb-4">Explore</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="recipes.html" class="hover:text-warm-100 transition-colors cursor-pointer">All Recipes</a></li>
+            <li><a href="#deals" class="hover:text-warm-100 transition-colors cursor-pointer">Weekly Deals</a></li>
+            <li><a href="#plan" class="hover:text-warm-100 transition-colors cursor-pointer">Meal Planner</a></li>
+            <li><a href="#about" class="hover:text-warm-100 transition-colors cursor-pointer">How It Works</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-serif text-warm-100 text-lg mb-4">Stores</h4>
+          <div class="space-y-3">
+            <div class="frost-dark rounded-xl px-4 py-3">
+              <span class="text-sm text-warm-200">Meny</span>
+              <span class="text-xs text-warm-400 ml-2">NorgesGruppen</span>
+            </div>
+            <div class="frost-dark rounded-xl px-4 py-3">
+              <span class="text-sm text-warm-200">aFood Market</span>
+              <span class="text-xs text-warm-400 ml-2">Asian specialty</span>
+            </div>
+          </div>
+          <div class="mt-4 text-xs text-warm-200/40">Prices updated weekly</div>
+        </div>
+      </div>
+
+      <div class="pt-8 border-t border-warm-800/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-warm-200/40">
+        <span>&copy; 2026 Hoely. Built with care for Thai food lovers in Norway.</span>
+        <span class="font-thai text-warm-200/30">อร่อยมาก</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    );
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  </script>
+
+</body>
+</html>
