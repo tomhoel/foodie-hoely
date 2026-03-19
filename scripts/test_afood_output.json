@@ -1,0 +1,200 @@
+[
+  {
+    "id": 1982,
+    "name": "FOCO Coconut milk ice bar 400G (5x80g) TH",
+    "slug": "foco-coconut-milk-ice-bar-400g-5x80g-th",
+    "url": "https://afoodmarket.no/produkt/foco-coconut-milk-ice-bar-400g-5x80g-th/",
+    "category_ids": [
+      253,
+      174,
+      175
+    ],
+    "category_names": [
+      "40",
+      "DESSERT",
+      "FERDIG"
+    ],
+    "featured_media_id": 0,
+    "status": "publish",
+    "in_stock": true,
+    "product_type": "simple",
+    "price": 109.9,
+    "sku": "206060"
+  },
+  {
+    "id": 1400,
+    "name": "AROY-D coconut milk (UHT) 500ml TH",
+    "slug": "aroy-d-coconut-milk-uht-500ml-th",
+    "url": "https://afoodmarket.no/produkt/aroy-d-coconut-milk-uht-500ml-th/",
+    "category_ids": [
+      355,
+      347,
+      346
+    ],
+    "category_names": [
+      "45",
+      "FERDIG",
+      "MIDDAG"
+    ],
+    "featured_media_id": 3355,
+    "status": "publish",
+    "in_stock": true,
+    "product_type": "simple",
+    "price": 29.9,
+    "sku": "107039"
+  },
+  {
+    "id": 1399,
+    "name": "AROY-D coconut milk (UHT) 250ml TH",
+    "slug": "aroy-d-coconut-milk-uht-250ml-th",
+    "url": "https://afoodmarket.no/produkt/aroy-d-coconut-milk-uht-250ml-th/",
+    "category_ids": [
+      309,
+      302,
+      95
+    ],
+    "category_names": [
+      "48",
+      "FERDIG",
+      "FRUKT og GRØNT"
+    ],
+    "featured_media_id": 3354,
+    "status": "publish",
+    "in_stock": true,
+    "product_type": "simple",
+    "price": 19.9,
+    "sku": "107030"
+  },
+  {
+    "id": 1398,
+    "name": "AROY-D coconut milk (UHT) 1L TH",
+    "slug": "aroy-d-coconut-milk-uht-1l-th",
+    "url": "https://afoodmarket.no/produkt/aroy-d-coconut-milk-uht-1l-th/",
+    "category_ids": [
+      306,
+      302,
+      95
+    ],
+    "category_names": [
+      "40",
+      "FERDIG",
+      "FRUKT og GRØNT"
+    ],
+    "featured_media_id": 3365,
+    "status": "publish",
+    "in_stock": true,
+    "product_type": "simple",
+    "price": 49.9,
+    "sku": "107029"
+  },
+  {
+    "id": 1397,
+    "name": "AROY-D coconut milk dessert 400ml TH",
+    "slug": "aroy-d-coconut-milk-dessert-400ml-th",
+    "url": "https://afoodmarket.no/produkt/aroy-d-coconut-milk-dessert-400ml-th/",
+    "category_ids": [
+      308,
+      302,
+      95
+    ],
+    "category_names": [
+      "45",
+      "FERDIG",
+      "FRUKT og GRØNT"
+    ],
+    "featured_media_id": 3358,
+    "status": "publish",
+    "in_stock": true,
+    "product_type": "simple",
+    "price": 29.9,
+    "sku": "107028"
+  },
+  {
+    "id": 1396,
+    "name": "AROY-D coconut milk for cooking 400ml TH",
+    "slug": "aroy-d-coconut-milk-for-cooking-400ml-th",
+    "url": "https://afoodmarket.no/produkt/aroy-d-coconut-milk-for-cooking-400ml-th/",
+    "category_ids": [
+      308,
+      302,
+      95
+    ],
+    "category_names": [
+      "45",
+      "FERDIG",
+      "FRUKT og GRØNT"
+    ],
+    "featured_media_id": 3360,
+    "status": "publish",
+    "in_stock": true,
+    "product_type": "simple",
+    "price": 29.9,
+    "sku": "107027"
+  },
+  {
+    "id": 1384,
+    "name": "AROY-D coconut milk 2900ml TH",
+    "slug": "aroy-d-coconut-milk-2900ml-th",
+    "url": "https://afoodmarket.no/produkt/aroy-d-coconut-milk-2900ml-th/",
+    "category_ids": [
+      351,
+      347,
+      346
+    ],
+    "category_names": [
+      "36",
+      "FERDIG",
+      "MIDDAG"
+    ],
+    "featured_media_id": 3357,
+    "status": "publish",
+    "in_stock": true,
+    "product_type": "simple",
+    "price": 159.9,
+    "sku": "107014"
+  },
+  {
+    "id": 1383,
+    "name": "AROY-D coconut milk 165ml TH",
+    "slug": "aroy-d-coconut-milk-165ml-th",
+    "url": "https://afoodmarket.no/produkt/aroy-d-coconut-milk-165ml-th/",
+    "category_ids": [
+      308,
+      302,
+      95
+    ],
+    "category_names": [
+      "45",
+      "FERDIG",
+      "FRUKT og GRØNT"
+    ],
+    "featured_media_id": 3356,
+    "status": "publish",
+    "in_stock": true,
+    "product_type": "simple",
+    "price": 14.9,
+    "sku": "107013"
+  },
+  {
+    "id": 1382,
+    "name": "AROY-D coconut milk easy open 400ml TH",
+    "slug": "aroy-d-coconut-milk-easy-open-400ml-th",
+    "url": "https://afoodmarket.no/produkt/aroy-d-coconut-milk-easy-open-400ml-th/",
+    "category_ids": [
+      309,
+      302,
+      95
+    ],
+    "category_names": [
+      "48",
+      "FERDIG",
+      "FRUKT og GRØNT"
+    ],
+    "featured_media_id": 3359,
+    "status": "publish",
+    "in_stock": true,
+    "product_type": "simple",
+    "price": 27.9,
+    "sku": "107012"
+  }
+]

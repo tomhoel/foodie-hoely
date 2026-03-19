@@ -1,0 +1,38 @@
+{
+  "name": "foodie",
+  "version": "1.0.0",
+  "description": "AI-powered grocery product matching for Thai/Asian recipes",
+  "main": "src/index.ts",
+  "scripts": {
+    "sync": "tsx src/index.ts sync all",
+    "sync:afood": "tsx src/index.ts sync afood",
+    "sync:meny": "tsx src/index.ts sync meny",
+    "enrich": "tsx src/index.ts enrich",
+    "embed": "tsx src/index.ts embed",
+    "seed": "tsx src/index.ts seed",
+    "link": "tsx src/index.ts link",
+    "pipeline": "tsx src/index.ts pipeline",
+    "stats": "tsx src/index.ts stats",
+    "cook": "tsx src/index.ts cook",
+    "match": "tsx src/index.ts match",
+    "recipe": "tsx src/index.ts recipe",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google/genai": "^1.46.0",
+    "@supabase/supabase-js": "^2.49.0",
+    "dotenv": "^16.4.0",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.0"
+  }
+}
