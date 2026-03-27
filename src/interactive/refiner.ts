@@ -212,15 +212,18 @@ async function incrementalRebuildCart(
   return {
     recipe,
     items,
+    staples: [],
     unmatched,
     summary: {
       total_price: totalPrice,
+      staples_price: 0,
       item_count: items.length,
+      staples_count: 0,
       afood_items: afoodItems,
       meny_items: menyItems,
       substitutions: items.filter((i) => i.match.tier === 3).length,
       unmatched_count: unmatched.length,
-      validation_skipped: true, // skip AI validation for incremental updates
+      validation_skipped: true,
     },
   };
 }

@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/landing/index.html" },
+    { "source": "/recipe", "destination": "/landing/recipe.html" },
+    { "source": "/img/:path*", "destination": "/landing/img/:path*" }
+  ],
+  "functions": {
+    "api/cook.ts": {
+      "maxDuration": 60
+    }
+  }
+}

@@ -10,11 +10,42 @@
 import { matchRecipeIngredients } from "../ingredients/matcher";
 import { validateMatches } from "../ingredients/ai-validator";
 import { aiCallJson } from "../utils/ai";
-import { saveJson } from "../utils/storage";
+import { loadJson, saveJson } from "../utils/storage";
 import { loadProfile, mergeOverrides, type TasteProfile } from "../profile/taste-profile";
 import { buildTastePromptSection } from "../profile/taste-prompt";
 import { adaptRecipe, printDietaryChanges, type DietaryConstraints } from "./dietary-adapter";
 import type { MatchResult } from "../db/types";
+
+// ─── Pantry Staples — items most home cooks already have ─────────────────────
+
+const DEFAULT_STAPLES = new Set([
+  "oil", "cooking oil", "vegetable oil", "sunflower oil", "canola oil",
+  "olive oil", "sesame oil", "salt", "pepper", "black pepper",
+  "sugar", "white sugar", "brown sugar", "water", "ice",
+  "garlic", "onion", "butter", "flour", "rice",
+  "soy sauce", "vinegar", "cornstarch", "baking powder",
+  "egg", "eggs",
+]);
+
+function loadStaples(): Set<string> {
+  const custom = loadJson<string[]>("pantry-staples.json");
+  if (custom?.length) {
+    return new Set([...DEFAULT_STAPLES, ...custom.map((s) => s.toLowerCase())]);
+  }
+  return DEFAULT_STAPLES;
+}
+
+export function isStaple(ingredientName: string): boolean {
+  const staples = loadStaples();
+  const name = ingredientName.toLowerCase().trim();
+  if (staples.has(name)) return true;
+  // Check if any staple is a substring match (e.g., "sesame oil" matches "oil")
+  // But be careful — only match if the staple IS the ingredient, not a component
+  for (const staple of staples) {
+    if (name === staple) return true;
+  }
+  return false;
+}
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -42,10 +73,13 @@ export interface RecipeIngredient {
 export interface ShoppingCart {
   recipe: GeneratedRecipe;
   items: ShoppingCartItem[];
+  staples: ShoppingCartItem[];
   unmatched: UnmatchedItem[];
   summary: {
     total_price: number;
+    staples_price: number;
     item_count: number;
+    staples_count: number;
     afood_items: number;
     meny_items: number;
     substitutions: number;
@@ -61,6 +95,15 @@ export interface ShoppingCartItem {
   product_price: number | null;
   product_url: string | null;
   source: "afood" | "meny";
+  alt?: AlternativeProduct | null;
+}
+
+export interface AlternativeProduct {
+  product_name: string;
+  product_price: number | null;
+  source: "afood" | "meny";
+  image_url: string | null;
+  product_id: string;
 }
 
 export interface UnmatchedItem {
@@ -102,6 +145,9 @@ Important ingredient naming rules:
 - Never add preparation adjectives (minced, sliced, day-old, fresh, dried) to ingredient names
 - Preparation details belong in steps, not ingredient names
 - Do not include "water" as an ingredient
+- Do NOT include common pantry staples that most home cooks already have: cooking oil, salt, pepper, sugar, garlic, onion, butter, flour, rice, eggs, vinegar, cornstarch
+- Only include specialty ingredients that the user actually needs to buy (e.g. fish sauce, curry paste, coconut milk, lemongrass — YES. Plain oil, salt, pepper, garlic — NO)
+- If a recipe truly depends on a specific TYPE of oil/sugar (e.g. "sesame oil", "palm sugar"), include it. But generic "oil" and "sugar" should be assumed at home
 - Include amounts that make sense for the serving size
 - Mark garnishes and optional items as is_essential: false
 - Be specific about cuts/prep in the steps, not the ingredient names
@@ -176,6 +222,7 @@ export async function buildShoppingCart(
   }
 
   const items: ShoppingCartItem[] = [];
+  const staples: ShoppingCartItem[] = [];
   const unmatched: UnmatchedItem[] = [];
 
   for (let idx = 0; idx < recipe.ingredients.length; idx++) {
@@ -183,14 +230,21 @@ export async function buildShoppingCart(
     const match = matches[idx];
 
     if (match.product) {
-      items.push({
+      const cartItem: ShoppingCartItem = {
         ingredient,
         match,
         product_name: match.product.name,
         product_price: match.product.price,
         product_url: match.product.product_url,
         source: match.product.source,
-      });
+      };
+
+      // Separate pantry staples from items to buy
+      if (isStaple(ingredient.name)) {
+        staples.push(cartItem);
+      } else {
+        items.push(cartItem);
+      }
     } else if (match.substitute) {
       unmatched.push({
         ingredient,
@@ -204,18 +258,51 @@ export async function buildShoppingCart(
     }
   }
 
+  // Find alternatives from the other store (parallel, non-blocking)
+  console.log(`  🔄 Finding alternatives at the other store...\n`);
+  const { matchIngredient } = await import("../ingredients/matcher");
+  await Promise.all(
+    items.map(async (item) => {
+      const otherSource = item.source === "afood" ? "meny" : "afood";
+      try {
+        const alt = await matchIngredient(item.ingredient.name, {
+          source: otherSource as "afood" | "meny",
+          amount: String(item.ingredient.amount || ""),
+          unit: String(item.ingredient.unit || ""),
+          category: item.ingredient.category,
+        });
+        if (alt.product?.price) {
+          item.alt = {
+            product_name: alt.product.name,
+            product_price: alt.product.price,
+            source: alt.product.source,
+            image_url: alt.product.image_url,
+            product_id: alt.product.product_id,
+          };
+        }
+      } catch {
+        // Non-critical — just skip alternatives on failure
+      }
+    })
+  );
+
   const totalPrice = items.reduce((sum, i) => sum + (i.product_price || 0), 0);
-  const afoodItems = items.filter((i) => i.source === "afood").length;
-  const menyItems = items.filter((i) => i.source === "meny").length;
+  const staplesPrice = staples.reduce((sum, i) => sum + (i.product_price || 0), 0);
+  const allMatchedItems = [...items, ...staples];
+  const afoodItems = allMatchedItems.filter((i) => i.source === "afood").length;
+  const menyItems = allMatchedItems.filter((i) => i.source === "meny").length;
   const substitutions = matches.filter((m) => m.tier === 3).length;
 
   return {
     recipe,
     items,
+    staples,
     unmatched,
     summary: {
       total_price: totalPrice,
+      staples_price: staplesPrice,
       item_count: items.length,
+      staples_count: staples.length,
       afood_items: afoodItems,
       meny_items: menyItems,
       substitutions,
@@ -279,7 +366,7 @@ export async function cook(
 // ─── Pretty Print ────────────────────────────────────────────────────────────
 
 export function printCart(cart: ShoppingCart): void {
-  const { recipe, items, unmatched, summary } = cart;
+  const { recipe, items, staples, unmatched, summary } = cart;
 
   console.log(`\n${"═".repeat(60)}`);
   console.log(`  🍳 ${recipe.name}`);
@@ -298,7 +385,7 @@ export function printCart(cart: ShoppingCart): void {
     recipe.tips.forEach((tip) => console.log(`     • ${tip}`));
   }
 
-  // Shopping list
+  // Shopping list — items to buy
   console.log(`\n${"─".repeat(60)}`);
   console.log(`  🛒 Shopping List`);
   console.log(`${"─".repeat(60)}\n`);
@@ -307,24 +394,34 @@ export function printCart(cart: ShoppingCart): void {
   const afoodItems = items.filter((i) => i.source === "afood");
   const menyItems = items.filter((i) => i.source === "meny");
 
-  if (afoodItems.length) {
-    console.log(`  📦 aFood Market (${afoodItems.length} items):`);
-    for (const item of afoodItems) {
+  const storeIcon = (s: string) => s === "afood" ? "📦" : "🏪";
+  const storeName = (s: string) => s === "afood" ? "aFood" : "Meny";
+
+  function printStoreGroup(storeItems: ShoppingCartItem[], icon: string, name: string) {
+    if (!storeItems.length) return;
+    console.log(`  ${icon} ${name} (${storeItems.length} items):`);
+    for (const item of storeItems) {
       const price = item.product_price ? `${item.product_price} kr` : "N/A";
       const tier = item.match.tier === 1 ? "✓" : "~";
       console.log(`     ${tier} ${item.ingredient.amount} ${item.ingredient.unit} ${item.ingredient.name}`);
       console.log(`       → ${item.product_name} (${price})`);
+      if (item.alt) {
+        const altPrice = item.alt.product_price ? `${item.alt.product_price} kr` : "N/A";
+        const altIcon = storeIcon(item.alt.source);
+        console.log(`       ${altIcon} Also at ${storeName(item.alt.source)}: ${item.alt.product_name} (${altPrice})`);
+      }
     }
     console.log();
   }
 
-  if (menyItems.length) {
-    console.log(`  🏪 Meny (${menyItems.length} items):`);
-    for (const item of menyItems) {
-      const price = item.product_price ? `${item.product_price} kr` : "N/A";
-      const tier = item.match.tier === 1 ? "✓" : "~";
-      console.log(`     ${tier} ${item.ingredient.amount} ${item.ingredient.unit} ${item.ingredient.name}`);
-      console.log(`       → ${item.product_name} (${price})`);
+  printStoreGroup(afoodItems, "📦", "aFood Market");
+  printStoreGroup(menyItems, "🏪", "Meny");
+
+  // Pantry staples — assumed at home
+  if (staples.length) {
+    console.log(`  🏠 Assumed at home (${staples.length} items):`);
+    for (const item of staples) {
+      console.log(`     · ${item.ingredient.amount} ${item.ingredient.unit} ${item.ingredient.name}`);
     }
     console.log();
   }
@@ -342,8 +439,11 @@ export function printCart(cart: ShoppingCart): void {
 
   // Summary
   console.log(`${"─".repeat(60)}`);
-  console.log(`  💰 Estimated total: ${summary.total_price.toFixed(2)} kr`);
-  console.log(`  📊 ${summary.item_count} products found (${summary.afood_items} aFood, ${summary.meny_items} Meny)`);
+  console.log(`  💰 Items to buy: ${summary.total_price.toFixed(2)} kr`);
+  if (summary.staples_count > 0) {
+    console.log(`  🏠 Pantry staples: ${summary.staples_count} items assumed at home`);
+  }
+  console.log(`  📊 ${summary.item_count} to buy (${summary.afood_items} aFood, ${summary.meny_items} Meny)`);
   if (summary.substitutions > 0) {
     console.log(`  🔄 ${summary.substitutions} substitutions suggested`);
   }

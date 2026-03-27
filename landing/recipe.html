@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>hoely</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#FAFAF8;--surface:#fff;--text:#1A1A18;--text-2:#7A7A72;--text-3:#AEAEA6;
+      --accent:#E8590C;--accent-hover:#D14E0A;--accent-light:rgba(232,89,12,0.06);
+      --border:rgba(0,0,0,0.06);--shadow:0 2px 20px rgba(0,0,0,0.06);
+      --radius:16px;--radius-lg:22px;
+      --meny:#00843D;--afood:#C41E3A;--trumf:#003087;--sas:#000080;
+    }
+    html{height:100%}
+    body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+    /* ── Header ── */
+    .header{display:flex;align-items:center;gap:12px;padding:14px 20px;position:sticky;top:0;background:rgba(250,250,248,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:50;border-bottom:1px solid var(--border)}
+    .back-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:none;background:var(--surface);border-radius:10px;cursor:pointer;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:box-shadow .15s;text-decoration:none}
+    .back-btn:hover{box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+    .header-logo{font-size:1.1rem;font-weight:600;color:var(--text);letter-spacing:-.02em}
+
+    /* ── Hero ── */
+    .hero{text-align:center;padding:24px 20px 0;max-width:640px;margin:0 auto}
+    .hero-img{width:100%;max-width:320px;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius-lg);background:#f0f0ec;display:block;margin:0 auto 16px}
+    .cuisine-badge{background:var(--accent-light);color:var(--accent);font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+    .hero-name{font-size:1.8rem;font-weight:600;letter-spacing:-.02em;line-height:1.2}
+    .hero-desc{font-size:.88rem;color:var(--text-2);margin-top:8px;line-height:1.5}
+    .hero-meta{justify-content:center;gap:20px;flex-wrap:wrap;margin-top:20px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+    .meta-item{display:flex;flex-direction:column;align-items:center;gap:4px}
+    .meta-value{font-weight:600;font-size:.9rem}
+    .meta-label{font-size:.68rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
+    .servings-stepper{display:inline-flex;align-items:center;gap:4px;background:var(--surface);border-radius:10px;padding:3px;border:1px solid var(--border)}
+    .stepper-btn{width:28px;height:28px;border:none;background:none;cursor:pointer;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text);transition:background .15s}
+    .stepper-btn:hover{background:var(--accent-light)}
+    #serving-count{font-weight:600;font-size:.95rem;min-width:22px;text-align:center}
+
+    /* ── Loading ── */
+    .loading{padding:20px;max-width:680px;margin:0 auto}
+    .status-msg{text-align:center;font-size:.85rem;color:var(--accent);font-weight:500;margin-bottom:20px;animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    .skeleton-grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:640px){.skeleton-grid{grid-template-columns:1fr 1fr}}
+    .skel-card{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)}
+    .skel-img{width:48px;height:48px;border-radius:12px;flex-shrink:0}
+    .skel-body{flex:1;display:flex;flex-direction:column;gap:8px}
+    .skel-line{height:11px;border-radius:6px}
+    @keyframes shimmer{0%{background-position:-200px 0}100%{background-position:200px 0}}
+    .skeleton{background:linear-gradient(90deg,#f0f0ec 25%,#e8e8e4 50%,#f0f0ec 75%);background-size:400px 100%;animation:shimmer 1.5s infinite}
+
+    /* ── Error ── */
+    .error-section{text-align:center;padding:60px 20px}
+    .error-msg{color:var(--text-2);font-size:.9rem;margin-bottom:16px}
+    .retry-btn{background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:10px;font:inherit;font-weight:500;cursor:pointer;transition:background .15s}
+    .retry-btn:hover{background:var(--accent-hover)}
+
+    /* ── Content ── */
+    .content{padding:0 20px 120px;max-width:680px;margin:0 auto}
+    .section-header{display:flex;align-items:baseline;gap:8px;margin:24px 0 14px}
+    .section-header h2{font-size:1.1rem;font-weight:600}
+    .items-count{font-size:.82rem;color:var(--text-3)}
+
+    /* ── Compare Header ── */
+    .compare-header{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;padding-left:0}
+    .compare-header-label{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:#fff;padding:5px 12px;border-radius:10px;width:fit-content}
+    .compare-header-label.meny{background:var(--meny)}
+    .compare-header-label.afood{background:var(--afood)}
+    .compare-header-label svg{flex-shrink:0}
+
+    /* ── Cards ── */
+    .cards-list{display:flex;flex-direction:column;gap:10px}
+
+    .card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;animation:cardIn .3s ease both}
+    @keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .card-header{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px 14px 0}
+    .card-ing{font-weight:500;color:var(--accent);font-size:.88rem}
+    .card-amt{font-size:.78rem;color:var(--text-3)}
+    .tier{width:7px;height:7px;border-radius:50%;flex-shrink:0;cursor:help}
+    .tier.t1{background:#059669}
+    .tier.t2{background:#D97706}
+    .tier.t3{background:#E8590C}
+
+    .card-compare{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px 12px}
+
+    .store-option{padding:10px;border-radius:12px;border:2px solid var(--border);cursor:pointer;transition:border-color .2s,background .2s;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;position:relative}
+    .store-option:hover{border-color:rgba(0,0,0,0.12)}
+    .store-option.selected{border-color:var(--accent);background:var(--accent-light)}
+    .store-option.selected .option-check{display:flex}
+    .store-option.unavailable{opacity:.35;cursor:default;border-style:dashed}
+    .store-option.unavailable:hover{border-color:var(--border)}
+
+    .option-img{width:40px;height:40px;border-radius:10px;object-fit:cover;background:#f0f0ec}
+    .option-name{font-size:.72rem;color:var(--text-2);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .option-price{font-weight:600;font-size:.9rem}
+    .option-basis{font-size:.62rem;color:var(--text-3);margin-top:-2px}
+    .option-unavail{font-size:.75rem;color:var(--text-3);padding:14px 0}
+    .option-check{display:none;position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:var(--accent);align-items:center;justify-content:center}
+    .option-check svg{width:10px;height:10px}
+
+    /* ── Collapsible Sections ── */
+    .collapsible{margin-top:20px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
+    .collapsible summary{padding:14px 16px;font-weight:500;font-size:.9rem;cursor:pointer;display:flex;align-items:center;gap:8px;list-style:none}
+    .collapsible summary::-webkit-details-marker{display:none}
+    .collapsible summary::before{content:'';width:18px;height:18px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%237A7A72' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 7l3 3 3-3'/%3E%3C/svg%3E") center/contain no-repeat;transition:transform .2s;flex-shrink:0}
+    .collapsible[open] summary::before{transform:rotate(180deg)}
+    .count-badge{font-size:.72rem;color:var(--text-3);font-weight:400}
+
+    .staples-list{padding:4px 16px 14px}
+    .staple-row{padding:6px 0;font-size:.82rem;color:var(--text-2);border-bottom:1px solid var(--border)}
+    .staple-row:last-child{border-bottom:none}
+
+    .unmatched-item{padding:10px 0;border-bottom:1px solid var(--border)}
+    .unmatched-item:last-child{border-bottom:none}
+    .unmatched-name{font-size:.85rem;color:var(--text)}
+    .unmatched-suggestion{display:block;font-size:.78rem;color:var(--text-3);margin-top:2px}
+
+    .steps-list{padding:4px 16px 14px 32px}
+    .steps-list li{padding:8px 0;font-size:.85rem;line-height:1.5;color:var(--text-2);border-bottom:1px solid var(--border)}
+    .steps-list li:last-child{border-bottom:none}
+    .tips-list{padding:4px 16px 14px;list-style:none}
+    .tips-list li{padding:8px 0;font-size:.85rem;line-height:1.5;color:var(--text-2);border-bottom:1px solid var(--border)}
+    .tips-list li:last-child{border-bottom:none}
+    .tips-list li::before{content:'\2022 ';color:var(--accent);font-weight:700}
+
+    /* ── Bottom Bar ── */
+    .bottom-bar{position:fixed;bottom:0;left:0;right:0;padding:12px 20px;padding-bottom:max(12px,env(safe-area-inset-bottom));background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);z-index:100}
+    .bar-row1{display:flex;justify-content:space-between;align-items:center}
+    .bar-total{font-size:1.3rem;font-weight:600}
+    .bar-loyalty{display:flex;gap:14px;font-size:.78rem;color:var(--text-2)}
+    .loyalty-item{display:flex;align-items:center;gap:4px}
+    .trumf-dot{width:8px;height:8px;border-radius:50%;background:var(--meny);display:inline-block}
+    .plane-icon{color:var(--sas)}
+    .bar-row2{font-size:.72rem;color:var(--text-3);margin-top:3px}
+
+    /* ── Animations ── */
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @media(prefers-reduced-motion:reduce){.card,.skeleton{animation:none!important;opacity:1}.status-msg{animation:none!important}}
+    @media(max-width:480px){.hero-name{font-size:1.5rem}.hero-img{max-width:260px}.bar-total{font-size:1.1rem}}
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="/" class="back-btn" aria-label="Back to search">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3L6 9l6 6"/></svg>
+    </a>
+    <span class="header-logo">hoely</span>
+  </header>
+
+  <main>
+    <section class="hero">
+      <img id="hero-img" class="hero-img" alt="" onerror="this.style.display='none'"/>
+      <span class="cuisine-badge" id="cuisine-badge" style="display:none"></span>
+      <h1 class="hero-name" id="hero-name"></h1>
+      <p class="hero-desc" id="hero-desc" style="display:none"></p>
+      <div class="hero-meta" id="hero-meta" style="display:none">
+        <div class="meta-item">
+          <div class="servings-stepper">
+            <button class="stepper-btn" onclick="changeServings(-1)" aria-label="Decrease servings">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h8"/></svg>
+            </button>
+            <span id="serving-count">4</span>
+            <button class="stepper-btn" onclick="changeServings(1)" aria-label="Increase servings">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h8M8 4v8"/></svg>
+            </button>
+          </div>
+          <span class="meta-label">servings</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-value" id="meta-prep"></span>
+          <span class="meta-label">prep</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-value" id="meta-cook"></span>
+          <span class="meta-label">cook</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-value" id="meta-diff"></span>
+          <span class="meta-label">level</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="loading" id="loading">
+      <p class="status-msg" id="status-msg">Generating recipe with AI...</p>
+      <div class="skeleton-grid">
+        <div class="skel-card"><div class="skel-img skeleton"></div><div class="skel-body"><div class="skel-line skeleton" style="width:65%"></div><div class="skel-line skeleton" style="width:85%"></div><div class="skel-line skeleton" style="width:45%"></div></div></div>
+        <div class="skel-card"><div class="skel-img skeleton"></div><div class="skel-body"><div class="skel-line skeleton" style="width:70%"></div><div class="skel-line skeleton" style="width:80%"></div><div class="skel-line skeleton" style="width:50%"></div></div></div>
+        <div class="skel-card"><div class="skel-img skeleton"></div><div class="skel-body"><div class="skel-line skeleton" style="width:55%"></div><div class="skel-line skeleton" style="width:75%"></div><div class="skel-line skeleton" style="width:40%"></div></div></div>
+        <div class="skel-card"><div class="skel-img skeleton"></div><div class="skel-body"><div class="skel-line skeleton" style="width:60%"></div><div class="skel-line skeleton" style="width:90%"></div><div class="skel-line skeleton" style="width:35%"></div></div></div>
+        <div class="skel-card"><div class="skel-img skeleton"></div><div class="skel-body"><div class="skel-line skeleton" style="width:75%"></div><div class="skel-line skeleton" style="width:70%"></div><div class="skel-line skeleton" style="width:55%"></div></div></div>
+        <div class="skel-card"><div class="skel-img skeleton"></div><div class="skel-body"><div class="skel-line skeleton" style="width:50%"></div><div class="skel-line skeleton" style="width:85%"></div><div class="skel-line skeleton" style="width:45%"></div></div></div>
+      </div>
+    </section>
+
+    <section class="error-section" id="error" style="display:none">
+      <p class="error-msg" id="error-msg">Something went wrong</p>
+      <button class="retry-btn" onclick="retry()">Try again</button>
+    </section>
+
+    <section class="content" id="content" style="display:none">
+      <div class="section-header">
+        <h2>Shopping List</h2>
+        <span class="items-count" id="items-count"></span>
+      </div>
+      <div class="compare-header" id="compare-header" style="display:none">
+        <span class="compare-header-label meny"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h12l-1.5 8H3.5z"/><path d="M5.5 6V4a2.5 2.5 0 015 0v2"/></svg> Meny</span>
+        <span class="compare-header-label afood"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"><line x1="6" y1="2" x2="4" y2="14"/><line x1="10" y1="2" x2="8" y2="14"/><path d="M3 8h8"/></svg> aFood</span>
+      </div>
+      <div class="cards-list" id="cards"></div>
+
+      <details id="staples-section" class="collapsible">
+        <summary>Assumed at home <span class="count-badge" id="staples-count"></span></summary>
+        <div class="staples-list" id="staples-list"></div>
+      </details>
+
+      <div id="unmatched-section" style="display:none">
+        <div class="section-header"><h2>Not available</h2></div>
+        <div id="unmatched-list" style="padding:0 20px"></div>
+      </div>
+
+      <details class="collapsible">
+        <summary>Recipe Steps</summary>
+        <ol class="steps-list" id="steps-list"></ol>
+      </details>
+
+      <details id="tips-section" class="collapsible">
+        <summary>Chef Tips</summary>
+        <ul class="tips-list" id="tips-list"></ul>
+      </details>
+    </section>
+  </main>
+
+  <div class="bottom-bar" id="bottom-bar" style="display:none">
+    <div class="bar-row1">
+      <span class="bar-total" id="bar-total">~0 kr</span>
+      <div class="bar-loyalty">
+        <span class="loyalty-item">
+          <span class="trumf-dot"></span>
+          <span id="bar-trumf">0.00</span> Trumf
+        </span>
+        <span class="loyalty-item">
+          <svg class="plane-icon" width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0L4.5 4H0l3.5 3L2 12l4-3 4 3-1.5-5L12 4H7.5z"/></svg>
+          <span id="bar-eb">0</span> EB
+        </span>
+      </div>
+    </div>
+    <div class="bar-row2" id="bar-sub">0 items</div>
+  </div>
+
+<script>
+// ── State ──
+const params=new URLSearchParams(location.search);
+const dishName=params.get('dish')||'';
+const dishImg=params.get('img')||'';
+const dishCuisine=params.get('cuisine')||'';
+let cart=null,baseServings=4,servings=4,msgTimer=null;
+
+// ── Init ──
+if(!dishName){location.href='/'}
+document.getElementById('hero-name').textContent=dishName;
+document.title=dishName?dishName+' \u2014 hoely':'hoely';
+
+if(dishImg){
+  let src=dishImg;
+  if(src&&!src.startsWith('http')&&!src.startsWith('/'))src='/'+src;
+  document.getElementById('hero-img').src=src;
+}
+if(dishCuisine){
+  const cb=document.getElementById('cuisine-badge');
+  cb.textContent=dishCuisine;
+  cb.style.display='inline-block';
+}
+startLoading();
+fetchCook();
+
+// ── Loading ──
+function startLoading(){
+  const msgs=['Generating recipe with AI...','Matching ingredients at Meny & aFood...','Finding the best prices...'];
+  let i=0;
+  const el=document.getElementById('status-msg');
+  el.textContent=msgs[0];
+  msgTimer=setInterval(()=>{i=(i+1)%msgs.length;el.textContent=msgs[i]},4000);
+  document.getElementById('loading').style.display='';
+}
+function stopLoading(){
+  clearInterval(msgTimer);
+  document.getElementById('loading').style.display='none';
+}
+
+// ── API ──
+async function fetchCook(){
+  try{
+    const res=await fetch('/api/cook',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({dish:dishName,servings:4})
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Failed to load recipe');
+    cart=data;
+    baseServings=cart.recipe.servings;
+    servings=baseServings;
+    stopLoading();
+    renderAll();
+  }catch(err){
+    stopLoading();
+    showError(err.message);
+  }
+}
+
+// ── Error ──
+function showError(msg){
+  document.getElementById('error').style.display='';
+  document.getElementById('error-msg').textContent=msg;
+}
+function retry(){
+  document.getElementById('error').style.display='none';
+  startLoading();
+  fetchCook();
+}
+
+// ── Render All ──
+function renderAll(){
+  renderMeta();
+  renderCards();
+  renderStaples();
+  renderUnmatched();
+  renderSteps();
+  renderTips();
+  recalculateTotals();
+  document.getElementById('content').style.display='';
+  document.getElementById('bottom-bar').style.display='';
+}
+
+function renderMeta(){
+  const r=cart.recipe;
+  const desc=document.getElementById('hero-desc');
+  desc.textContent=r.description;
+  desc.style.display='';
+  document.getElementById('meta-prep').textContent=r.prep_time;
+  document.getElementById('meta-cook').textContent=r.cook_time;
+  document.getElementById('meta-diff').textContent=r.difficulty;
+  document.getElementById('serving-count').textContent=r.servings;
+  document.getElementById('hero-meta').style.display='flex';
+}
+
+// ── Cards ──
+function renderCards(){
+  const el=document.getElementById('cards');
+  document.getElementById('items-count').textContent=cart.items.length+' items';
+  document.getElementById('compare-header').style.display='';
+
+  // Sort: items with both stores first, then single-store
+  const sorted=cart.items.map((item,i)=>({item,i}));
+  sorted.sort((a,b)=>{
+    const aHas=a.item.alt?2:1, bHas=b.item.alt?2:1;
+    return bHas-aHas;
+  });
+
+  el.innerHTML=sorted.map(({item,i})=>cardHtml(item,i)).join('');
+}
+
+function cardHtml(item,i){
+  const amt=fmtAmt(item.ingredient.amount,item.ingredient.unit);
+  const tc='t'+(item.tier||1);
+  const tl=item.tier===1?'Direct match':item.tier===2?'Semantic match':'Substitute';
+  const rAmt=parseFloat(item.ingredient.amount);
+  const rUnit=item.ingredient.unit||'';
+
+  // Normalize: figure out meny product and afood product
+  let meny=null,afood=null;
+  if(item.source==='meny'){
+    meny={name:item.product_name,price:item.product_price,image:item.product_image,
+      cmpPrice:item.compare_price,cmpUnit:item.compare_unit,wKg:item.weight_kg,size:item.size};
+    if(item.alt)afood={name:item.alt.product_name,price:item.alt.product_price,image:item.alt.image_url,
+      cmpPrice:item.alt.compare_price,cmpUnit:item.alt.compare_unit,wKg:item.alt.weight_kg,size:item.alt.size};
+  }else{
+    afood={name:item.product_name,price:item.product_price,image:item.product_image,
+      cmpPrice:item.compare_price,cmpUnit:item.compare_unit,wKg:item.weight_kg,size:item.size};
+    if(item.alt)meny={name:item.alt.product_name,price:item.alt.product_price,image:item.alt.image_url,
+      cmpPrice:item.alt.compare_price,cmpUnit:item.alt.compare_unit,wKg:item.alt.weight_kg,size:item.alt.size};
+  }
+
+  const defStore=item.source;
+  const cat=item.ingredient.category;
+  const chk=`<span class="option-check"><svg viewBox="0 0 10 10" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M2 5.5l2 2 4-4.5"/></svg></span>`;
+
+  function optHtml(store,prod){
+    if(!prod)return`<div class="store-option unavailable"><div class="option-unavail">\u2014</div></div>`;
+    const sel=store===defStore?'selected':'';
+    const img=prod.image||phSvg(cat);
+    const ec=estCost(prod.price,prod.cmpPrice,prod.cmpUnit,prod.wKg,rAmt,rUnit);
+    const priceHtml=ec.est!==null
+      ?`<div class="option-price">~${ec.est.toFixed(0)} kr</div><div class="option-basis">${prod.price?prod.price.toFixed(0)+' kr':''}${ec.basis?' / '+ec.basis:''}</div>`
+      :`<div class="option-price">${prod.price?prod.price.toFixed(0)+' kr':'\u2013'}</div>`;
+    return`<div class="store-option ${sel}" data-store="${store}" onclick="selectStore(${i},'${store}')">
+      ${chk}
+      <img class="option-img" src="${img}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${phSvg(cat)}'"/>
+      <div class="option-name">${esc(prod.name)}</div>
+      ${priceHtml}
+    </div>`;
+  }
+
+  // For totals: use estimated cost if available
+  const menyEc=meny?estCost(meny.price,meny.cmpPrice,meny.cmpUnit,meny.wKg,rAmt,rUnit):null;
+  const afoodEc=afood?estCost(afood.price,afood.cmpPrice,afood.cmpUnit,afood.wKg,rAmt,rUnit):null;
+  const menyEffective=menyEc&&menyEc.est!==null?menyEc.est:meny?.price||0;
+  const afoodEffective=afoodEc&&afoodEc.est!==null?afoodEc.est:afood?.price||0;
+
+  return`<div class="card" id="card-${i}" data-selected="${defStore}"
+    ${meny?`data-meny-price="${menyEffective}" data-meny-name="${esc(meny.name)}"`:''}
+    ${afood?`data-afood-price="${afoodEffective}" data-afood-name="${esc(afood.name)}"`:''}
+    style="animation-delay:${i*40}ms">
+    <div class="card-header">
+      <span class="card-ing">${esc(item.ingredient.name)}</span>
+      <span class="card-amt" data-base="${item.ingredient.amount}" data-unit="${item.ingredient.unit||''}">${amt}</span>
+      <span class="tier ${tc}" title="${tl}"></span>
+    </div>
+    <div class="card-compare">
+      ${optHtml('meny',meny)}
+      ${optHtml('afood',afood)}
+    </div>
+  </div>`;
+}
+
+// ── Staples ──
+function renderStaples(){
+  if(!cart.staples||!cart.staples.length){document.getElementById('staples-section').style.display='none';return}
+  document.getElementById('staples-count').textContent='('+cart.staples.length+')';
+  document.getElementById('staples-list').innerHTML=cart.staples.map(s=>
+    `<div class="staple-row">${esc(s.ingredient.name)} \u00b7 ${fmtAmt(s.ingredient.amount,s.ingredient.unit)}</div>`
+  ).join('');
+}
+
+// ── Unmatched ──
+function renderUnmatched(){
+  if(!cart.unmatched||!cart.unmatched.length)return;
+  document.getElementById('unmatched-section').style.display='';
+  document.getElementById('unmatched-list').innerHTML=cart.unmatched.map(u=>
+    `<div class="unmatched-item">
+      <span class="unmatched-name">${esc(u.ingredient.name)} \u00b7 ${fmtAmt(u.ingredient.amount,u.ingredient.unit)}</span>
+      ${u.suggestion?`<span class="unmatched-suggestion">${esc(u.suggestion)}</span>`:''}
+    </div>`
+  ).join('');
+}
+
+// ── Steps & Tips ──
+function renderSteps(){
+  document.getElementById('steps-list').innerHTML=cart.recipe.steps.map(s=>
+    `<li>${esc(s)}</li>`
+  ).join('');
+}
+function renderTips(){
+  if(!cart.recipe.tips||!cart.recipe.tips.length){document.getElementById('tips-section').style.display='none';return}
+  document.getElementById('tips-list').innerHTML=cart.recipe.tips.map(t=>
+    `<li>${esc(t)}</li>`
+  ).join('');
+}
+
+// ── Store Selection ──
+function selectStore(i,store){
+  const card=document.getElementById('card-'+i);
+  if(!card.dataset[store+'Name'])return; // unavailable
+  card.dataset.selected=store;
+  card.querySelectorAll('.store-option').forEach(opt=>{
+    opt.classList.toggle('selected',opt.dataset.store===store);
+  });
+  recalculateTotals();
+}
+
+// ── Servings ──
+function changeServings(delta){
+  servings=Math.max(1,Math.min(20,servings+delta));
+  document.getElementById('serving-count').textContent=servings;
+  updateAmounts();
+}
+function updateAmounts(){
+  const scale=servings/baseServings;
+  document.querySelectorAll('.card-amt').forEach(el=>{
+    const base=parseFloat(el.dataset.base);
+    if(isNaN(base))return;
+    const unit=el.dataset.unit||'';
+    const scaled=base*scale;
+    el.textContent=fmtNum(scaled)+(unit?' '+unit:'');
+  });
+}
+
+// ── Totals ──
+function recalculateTotals(){
+  let total=0,menyTotal=0,afoodTotal=0,count=0;
+  document.querySelectorAll('.card').forEach(card=>{
+    const sel=card.dataset.selected; // 'meny' or 'afood'
+    const price=parseFloat(card.dataset[sel+'Price'])||0;
+    total+=price;count++;
+    if(sel==='meny')menyTotal+=price;
+    else afoodTotal+=price;
+  });
+
+  const trumf=(menyTotal*0.01).toFixed(2);
+  const eb=Math.floor(total/100*20);
+
+  document.getElementById('bar-total').textContent='~'+Math.round(total)+' kr';
+  document.getElementById('bar-trumf').textContent=trumf;
+  document.getElementById('bar-eb').textContent=eb;
+  document.getElementById('bar-sub').textContent=
+    count+' items \u00b7 '+Math.round(menyTotal)+' kr Meny \u00b7 '+Math.round(afoodTotal)+' kr aFood';
+}
+
+// ── Helpers ──
+function sn(s){return s==='meny'?'Meny':'aFood'}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function fmtNum(n){return n%1===0?n.toString():n.toFixed(1)}
+function fmtAmt(amount,unit){
+  const a=parseFloat(amount);
+  const u=unit||'';
+  if(isNaN(a))return(amount||'')+(u?' '+u:'');
+  return fmtNum(a)+(u?' '+u:'');
+}
+
+// Estimate cost for recipe amount based on compare_price or weight
+function estCost(price,cmpPrice,cmpUnit,weightKg,recipeAmt,recipeUnit){
+  if(!price||isNaN(recipeAmt))return{est:null,basis:null};
+  // Try compare_price first (e.g. 299 kr/kg)
+  if(cmpPrice&&cmpUnit){
+    const conv=toUnit(recipeAmt,recipeUnit,cmpUnit);
+    if(conv!==null){
+      return{est:cmpPrice*conv,basis:cmpUnit};
+    }
+  }
+  // Fallback: use weight_kg to derive per-kg cost
+  if(weightKg&&weightKg>0){
+    const conv=toUnit(recipeAmt,recipeUnit,'kg');
+    if(conv!==null){
+      const perKg=price/weightKg;
+      return{est:perKg*conv,basis:'kg'};
+    }
+  }
+  return{est:null,basis:null};
+}
+
+function toUnit(val,from,to){
+  if(isNaN(val)||!from||!to)return null;
+  from=from.toLowerCase().replace(/\.$/,'');
+  to=to.toLowerCase().replace(/\.$/,'');
+  if(from===to)return val;
+  // Weight
+  if(to==='kg'){
+    if(from==='g')return val/1000;
+  }
+  if(to==='g'){
+    if(from==='kg')return val*1000;
+  }
+  // Volume
+  if(to==='l'||to==='ltr'){
+    if(from==='ml')return val/1000;
+    if(from==='dl')return val/10;
+    if(from==='cl')return val/100;
+  }
+  if(to==='ml'){
+    if(from==='l'||from==='ltr')return val*1000;
+    if(from==='dl')return val*100;
+  }
+  return null;
+}
+
+function phSvg(cat){
+  const c={protein:'#E8590C',vegetable:'#059669',sauce:'#D97706',spice:'#B84500',carb:'#C44408',dairy:'#003087',other:'#9A3412'};
+  const l={protein:'P',vegetable:'V',sauce:'S',spice:'Sp',carb:'C',dairy:'D',other:'?'};
+  const col=c[cat]||c.other;
+  const lt=l[cat]||'?';
+  return"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="48" height="48" rx="12" fill="'+col+'" opacity="0.12"/><text x="24" y="30" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="600" fill="'+col+'">'+lt+'</text></svg>');
+}
+</script>
+
+</body>
+</html>

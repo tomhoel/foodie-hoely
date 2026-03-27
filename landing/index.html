@@ -3,1028 +3,570 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hoely — Your Thai & Asian Kitchen Companion</title>
+  <title>Hoely</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <!-- Preload hero images for fast LCP -->
-  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1559314809-0d155014e29e?w=600&h=400&fit=crop" />
-  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=600&h=400&fit=crop" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            heading: ['Outfit', 'sans-serif'],
-            body: ['DM Sans', 'sans-serif'],
-          },
-          colors: {
-            warm: {
-              50: '#fdf8f0',
-              100: '#fce4c0',
-              200: '#f5d5b0',
-              300: '#e8c8a0',
-              400: '#d4b896',
-              500: '#c4a882',
-              600: '#9e8e7a',
-              700: '#6b5e4f',
-              800: '#3d2e1f',
-              900: '#1a1207',
-            },
-            accent: {
-              amber: '#e68a00',
-              orange: '#d4540a',
-              green: '#0d9668',
-              purple: '#7c4dba',
-            },
-          },
-        },
-      },
-    }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#FAFAF8;--surface:#fff;--text:#1A1A18;--text-2:#7A7A72;--text-3:#AEAEA6;
+      --accent:#E8590C;--accent-hover:#D14E0A;--accent-light:rgba(232,89,12,0.06);
+      --border:rgba(0,0,0,0.06);--shadow:0 2px 20px rgba(0,0,0,0.06);
+      --radius:16px;--radius-lg:22px;
+    }
+    html{height:100%}
+    body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100%;-webkit-font-smoothing:antialiased}
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: #f5e6d3;
-      color: #1a1207;
-      overflow-x: hidden;
-      min-height: 100vh;
-    }
+    .page{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden}
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      background:
-        radial-gradient(ellipse 80% 50% at 70% 20%, rgba(255, 183, 77, 0.5) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 70% at 20% 60%, rgba(255, 138, 101, 0.3) 0%, transparent 50%),
-        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(129, 199, 132, 0.2) 0%, transparent 50%),
-        radial-gradient(ellipse 90% 60% at 50% 30%, rgba(255, 213, 152, 0.4) 0%, transparent 70%),
-        linear-gradient(160deg, #fce4c0 0%, #f5d5b0 25%, #e8c8a0 50%, #d4b896 75%, #f0dcc0 100%);
-    }
+    /* ── Logo ── */
+    .logo{display:flex;flex-direction:column;align-items:center;gap:16px;margin-bottom:48px;animation:fadeIn .6s ease both}
+    .logo-mark{position:relative;width:80px;height:80px}
+    .logo-bowl{width:80px;height:80px}
+    .logo-name{font-size:1.7rem;font-weight:600;color:var(--text);letter-spacing:-.02em}
+    .logo-tagline{font-size:.82rem;color:var(--text-3);margin-top:-8px;letter-spacing:.03em}
 
-    /* ── Glass Card System ── */
-    .glass {
-      background: rgba(255, 255, 255, 0.55);
-      backdrop-filter: blur(24px) saturate(1.4);
-      -webkit-backdrop-filter: blur(24px) saturate(1.4);
-      border: 1px solid rgba(255, 255, 255, 0.6);
-      border-radius: 24px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    /* ── Search ── */
+    .search-area{width:100%;max-width:580px;position:relative;z-index:10;animation:fadeIn .6s ease .1s both}
+    .search-box{
+      display:flex;align-items:center;gap:12px;
+      padding:14px 18px;
+      border-radius:var(--radius);
+      background:var(--surface);
+      border:1.5px solid var(--border);
+      box-shadow:var(--shadow);
+      transition:border-color .2s,box-shadow .2s;
     }
+    .search-box:focus-within{border-color:rgba(232,89,12,.35);box-shadow:0 0 0 4px rgba(232,89,12,.06),0 2px 20px rgba(0,0,0,.06)}
+    .search-icon{flex-shrink:0;color:var(--text-3);transition:color .2s}
+    .search-box:focus-within .search-icon{color:var(--accent)}
+    .search-input{flex:1;border:none;outline:none;background:transparent;font:inherit;font-size:1rem;color:var(--text);caret-color:var(--accent)}
+    .search-input::placeholder{color:var(--text-3)}
+    .clear-btn{display:none;border:none;background:none;cursor:pointer;color:var(--text-3);padding:4px;flex-shrink:0;transition:color .15s}
+    .clear-btn:hover{color:var(--text)}
+    .clear-btn.on{display:block}
+    .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .5s linear infinite;display:none;flex-shrink:0}
+    .spinner.on{display:block}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
-    .glass-strong {
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(40px) saturate(1.6);
-      -webkit-backdrop-filter: blur(40px) saturate(1.6);
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      border-radius: 28px;
-      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08);
+    /* ── Dropdown ── */
+    .dd{
+      position:absolute;top:calc(100% + 6px);left:0;right:0;
+      border-radius:var(--radius);
+      background:var(--surface);
+      border:1px solid var(--border);
+      box-shadow:0 12px 48px rgba(0,0,0,.1),0 2px 8px rgba(0,0,0,.04);
+      max-height:0;opacity:0;overflow:hidden;
+      transition:max-height .25s cubic-bezier(.16,1,.3,1),opacity .15s ease;
     }
+    .dd.open{max-height:440px;opacity:1;overflow-y:auto;overflow-x:hidden}
+    .dd::-webkit-scrollbar{width:5px}
+    .dd::-webkit-scrollbar-thumb{background:rgba(0,0,0,.08);border-radius:3px}
 
-    .glass-subtle {
-      background: rgba(255, 255, 255, 0.35);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      border-radius: 20px;
-    }
+    /* ── Dish row ── */
+    .row{display:flex;align-items:center;gap:14px;padding:10px 16px;cursor:pointer;transition:background .12s;animation:rowIn .18s ease both}
+    .row:nth-child(2){animation-delay:25ms}
+    .row:nth-child(3){animation-delay:50ms}
+    .row:nth-child(4){animation-delay:75ms}
+    .row:nth-child(5){animation-delay:100ms}
+    .row:nth-child(6){animation-delay:125ms}
+    .row:nth-child(7){animation-delay:150ms}
+    @keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .row:hover,.row.active{background:var(--accent-light)}
+    .row-img{width:48px;height:48px;aspect-ratio:1;border-radius:12px;object-fit:cover;flex-shrink:0;background:#F0F0EC}
+    .row-img[src=""]{display:none}
+    .row-avatar{width:48px;height:48px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-weight:600;font-size:1.1rem;color:#fff}
+    .row-body{flex:1;min-width:0}
+    .row-name{font-size:.95rem;font-weight:500;color:var(--text);line-height:1.3}
+    .row-name .hl{color:var(--accent);font-weight:600}
+    .row-meta{font-size:.72rem;color:var(--text-3);margin-top:1px;display:flex;align-items:center;gap:5px}
+    .row-meta .sep{width:3px;height:3px;border-radius:50%;background:var(--text-3);opacity:.5;flex-shrink:0}
+    .row-arrow{color:var(--text-3);opacity:0;transition:opacity .12s;flex-shrink:0}
+    .row:hover .row-arrow{opacity:.5}
 
-    .glass-dark {
-      background: rgba(30, 20, 10, 0.6);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 24px;
-    }
+    .dd-empty{padding:32px 20px;text-align:center;color:var(--text-3);font-size:.85rem}
+    .dd-empty small{display:block;margin-top:4px;color:var(--text-3);opacity:.6;font-size:.75rem}
 
-    .glass-accent {
-      background: rgba(255, 160, 50, 0.15);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 160, 50, 0.25);
-      border-radius: 20px;
-    }
+    /* ── Hints ── */
+    .hints{margin-top:24px;font-size:.78rem;color:var(--text-3);text-align:center;animation:fadeIn .6s ease .2s both}
+    .hint{color:var(--accent);background:none;border:none;font:inherit;cursor:pointer;font-weight:500}
+    .hint:hover{text-decoration:underline}
 
-    /* ── Card Interactions ── */
-    .glass, .glass-strong, .glass-subtle, .glass-dark, .glass-accent {
-      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.3s ease;
-    }
-    .card-hover:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
-      border-color: rgba(255, 255, 255, 0.8);
-    }
+    .footer{position:fixed;bottom:16px;left:0;right:0;text-align:center;font-size:.7rem;color:var(--text-3);opacity:.4;animation:fadeIn .6s ease .3s both}
 
-    /* ── Recipe Card with Photo ── */
-    .recipe-card {
-      overflow: hidden;
-      cursor: pointer;
-    }
-    .recipe-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
-    }
-    .recipe-card:hover .recipe-card-img {
-      transform: scale(1.05);
-    }
-    .recipe-card-img {
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* ── Floating Pill Nav ── */
-    .nav-pill {
-      border-radius: 100px;
-      background: rgba(255, 255, 255, 0.6);
-      backdrop-filter: blur(24px) saturate(1.4);
-      -webkit-backdrop-filter: blur(24px) saturate(1.4);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-    }
-
-    /* ── Accent Bar ── */
-    .accent-bar { height: 3px; border-radius: 100px; }
-    .accent-bar-amber { background: linear-gradient(90deg, #e68a00, #ffb74d); }
-    .accent-bar-orange { background: linear-gradient(90deg, #d4540a, #ff8a65); }
-    .accent-bar-green { background: linear-gradient(90deg, #0d9668, #66bb6a); }
-    .accent-bar-purple { background: linear-gradient(90deg, #7c4dba, #b39ddb); }
-
-    /* ── CTA Buttons ── */
-    .btn-amber {
-      background: linear-gradient(135deg, #e68a00, #f5a623);
-      color: #fff;
-      border: none;
-      border-radius: 100px;
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      box-shadow: 0 4px 16px rgba(230, 138, 0, 0.3);
-    }
-    .btn-amber:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(230, 138, 0, 0.4);
-    }
-
-    .btn-glass {
-      background: rgba(255, 255, 255, 0.5);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      color: #1a1207;
-      border: 1px solid rgba(255, 255, 255, 0.6);
-      border-radius: 100px;
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-    }
-    .btn-glass:hover {
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.7);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    }
-
-    /* ── Deal Badge ── */
-    .deal-badge {
-      background: linear-gradient(135deg, #e68a00, #d4540a);
-      color: white;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    /* ── Marquee ── */
-    @keyframes marquee {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-    .marquee-track {
-      display: flex;
-      width: max-content;
-      animation: marquee 30s linear infinite;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .marquee-track { animation: none; }
-    }
-
-    /* ── Scroll Reveal ── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .reveal { opacity: 1; transform: none; transition: none; }
-    }
-
-    /* ── Pill Badge ── */
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      border-radius: 100px;
-      background: rgba(255, 255, 255, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: #6b5e4f;
-    }
-
-    /* ── Small glass pill (stats, day labels) ── */
-    .glass-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 10px;
-      border-radius: 100px;
-      background: rgba(0, 0, 0, 0.06);
-      font-size: 0.7rem;
-      font-weight: 500;
-      color: #6b5e4f;
-    }
-
-    /* ── Feature icon circle ── */
-    .icon-circle {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.4rem;
-    }
-    .icon-circle-amber {
-      background: rgba(255, 160, 50, 0.15);
-      border: 1px solid rgba(255, 160, 50, 0.25);
-    }
-    .icon-circle-green {
-      background: rgba(13, 150, 104, 0.12);
-      border: 1px solid rgba(13, 150, 104, 0.2);
-    }
-    .icon-circle-purple {
-      background: rgba(124, 77, 186, 0.12);
-      border: 1px solid rgba(124, 77, 186, 0.2);
-    }
-
-    /* ── Warm decorative orbs ── */
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(40px);
-      opacity: 0.5;
-      pointer-events: none;
-    }
-
-    /* ── Mobile menu ── */
-    .mobile-menu {
-      display: none;
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      right: 0;
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(24px) saturate(1.4);
-      -webkit-backdrop-filter: blur(24px) saturate(1.4);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      border-radius: 20px;
-      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.1);
-      padding: 16px 20px;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .mobile-menu.open {
-      display: flex;
-    }
-
-    /* ── Feature tag pill ── */
-    .tag-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 10px;
-      border-radius: 100px;
-      font-size: 0.65rem;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-    }
-
-    /* ── Hero photo grid ── */
-    .hero-photo-grid {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      grid-template-rows: 1fr 1fr;
-      gap: 12px;
-    }
-    @media (max-width: 1023px) {
-      .hero-photo-grid {
-        display: flex;
-        overflow-x: auto;
-        gap: 12px;
-        padding-bottom: 8px;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-      }
-      .hero-photo-grid > * {
-        min-width: 260px;
-        scroll-snap-align: start;
-      }
-      .hero-photo-grid::-webkit-scrollbar { display: none; }
-    }
-
-    /* ── Spotlight photo ── */
-    .spotlight-photo-wrap {
-      position: relative;
-      border-radius: 24px;
-      overflow: hidden;
-    }
-    .spotlight-photo-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @media(prefers-reduced-motion:reduce){.logo,.search-area,.hints,.footer,.row{animation:none!important;opacity:1}.dd{transition:none!important}.spinner{animation:none!important}}
+    @media(max-width:480px){.logo-mark{width:64px;height:64px}.logo-bowl{width:64px;height:64px}.logo-name{font-size:1.4rem}.search-input{font-size:.95rem}.row-img{width:40px;height:40px;border-radius:10px}}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
 </head>
-<body class="font-body">
+<body>
 
-  <!-- ════════════════════════════════════════════ -->
-  <!-- NAV — Floating Pill                         -->
-  <!-- ════════════════════════════════════════════ -->
-  <nav class="fixed top-4 left-1/2 -translate-x-1/2 z-50 nav-pill" style="padding: 8px 8px 8px 24px; max-width: 720px; width: calc(100% - 32px);">
-    <div class="flex items-center justify-between relative">
-      <a href="index.html" class="font-heading font-bold text-xl tracking-tight" style="color: #1a1207;">Hoely</a>
-      <div class="hidden md:flex items-center gap-6 ml-8">
-        <a href="#deals" class="text-sm font-medium hover:text-amber-700 transition-colors" style="color: #6b5e4f;">Deals</a>
-        <a href="#meal-plan" class="text-sm font-medium hover:text-amber-700 transition-colors" style="color: #6b5e4f;">Meal Plan</a>
-        <a href="#features" class="text-sm font-medium hover:text-amber-700 transition-colors" style="color: #6b5e4f;">Features</a>
-        <a href="recipes.html" class="text-sm font-medium hover:text-amber-700 transition-colors" style="color: #6b5e4f;">Recipes</a>
+  <div class="page">
+
+    <!-- Logo: Bowl with steam + chopsticks -->
+    <div class="logo">
+      <div class="logo-mark">
+        <svg class="logo-bowl" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Steam wisps -->
+          <path d="M28 22 Q30 16 28 10" stroke="#E8590C" stroke-width="2" stroke-linecap="round" opacity=".35">
+            <animate attributeName="d" values="M28 22 Q30 16 28 10;M28 22 Q26 15 28 8;M28 22 Q30 16 28 10" dur="3s" repeatCount="indefinite"/>
+          </path>
+          <path d="M40 20 Q42 13 40 6" stroke="#E8590C" stroke-width="2.5" stroke-linecap="round" opacity=".5">
+            <animate attributeName="d" values="M40 20 Q42 13 40 6;M40 20 Q38 12 40 4;M40 20 Q42 13 40 6" dur="2.5s" repeatCount="indefinite"/>
+          </path>
+          <path d="M52 22 Q54 16 52 10" stroke="#E8590C" stroke-width="2" stroke-linecap="round" opacity=".35">
+            <animate attributeName="d" values="M52 22 Q54 16 52 10;M52 22 Q50 15 52 8;M52 22 Q54 16 52 10" dur="3.5s" repeatCount="indefinite"/>
+          </path>
+          <!-- Bowl body -->
+          <path d="M12 36 C12 36 10 56 28 64 C36 68 44 68 52 64 C70 56 68 36 68 36Z" fill="#E8590C"/>
+          <!-- Bowl rim -->
+          <ellipse cx="40" cy="36" rx="30" ry="8" fill="#D14E0A"/>
+          <!-- Bowl highlight -->
+          <ellipse cx="40" cy="36" rx="26" ry="5.5" fill="#E8590C"/>
+          <!-- Food inside bowl -->
+          <ellipse cx="40" cy="37" rx="22" ry="4" fill="#F5A060" opacity=".6"/>
+          <!-- Chopsticks -->
+          <line x1="54" y1="18" x2="36" y2="44" stroke="#3D2B1F" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="60" y1="20" x2="42" y2="46" stroke="#3D2B1F" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- Bowl base -->
+          <ellipse cx="40" cy="66" rx="10" ry="2.5" fill="#C44408"/>
+        </svg>
       </div>
-      <!-- Mobile hamburger button -->
-      <button id="mobile-menu-btn" class="md:hidden ml-auto mr-3 p-2" aria-label="Toggle menu">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1207" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-      <a href="recipes.html" class="btn-amber text-sm px-5 py-2 ml-4 inline-block no-underline hidden md:inline-block">Browse Recipes</a>
-      <!-- Mobile dropdown menu -->
-      <div id="mobile-menu" class="mobile-menu">
-        <a href="#deals" class="text-sm font-medium py-2" style="color: #6b5e4f;">Deals</a>
-        <a href="#meal-plan" class="text-sm font-medium py-2" style="color: #6b5e4f;">Meal Plan</a>
-        <a href="#features" class="text-sm font-medium py-2" style="color: #6b5e4f;">Features</a>
-        <a href="recipes.html" class="text-sm font-medium py-2" style="color: #6b5e4f;">Recipes</a>
-        <a href="recipes.html" class="btn-amber text-sm px-5 py-2 inline-block no-underline text-center mt-1">Browse Recipes</a>
-      </div>
-    </div>
-  </nav>
-
-  <!-- ════════════════════════════════════════════ -->
-  <!-- HERO                                         -->
-  <!-- ════════════════════════════════════════════ -->
-  <section class="pt-28 md:pt-36 pb-12 px-4 md:px-8 max-w-7xl mx-auto">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-      <!-- Left: Heading + CTAs (5 cols) -->
-      <div class="lg:col-span-5 reveal">
-        <p class="text-sm font-medium uppercase tracking-widest mb-4" style="color: #e68a00;">Thai &amp; Asian Kitchen Companion</p>
-        <h1 class="font-heading font-extrabold leading-[1.08] tracking-tight mb-6" style="font-size: clamp(2.8rem, 5vw, 4.8rem); color: #1a1207;">
-          What should we<br>cook tonight?
-        </h1>
-        <p class="text-lg mb-8 max-w-lg" style="color: #6b5e4f;">
-          Authentic Thai &amp; Asian recipes matched to this week's best deals at Meny and aFood.
-        </p>
-        <div class="flex flex-wrap gap-3">
-          <a href="recipes.html" class="btn-amber text-base px-7 py-3 inline-block no-underline">Explore Recipes</a>
-          <a href="#meal-plan" class="btn-glass text-base px-7 py-3 inline-block no-underline">See Meal Plans</a>
-        </div>
-      </div>
-
-      <!-- Right: 2x2 Photo Card Grid (7 cols) -->
-      <div class="lg:col-span-7 reveal" style="transition-delay: 0.15s;">
-        <div class="hero-photo-grid">
-          <!-- Pad Thai — top left, larger feel -->
-          <a href="recipes.html" class="glass recipe-card" style="border-radius: 20px; text-decoration: none; color: inherit;">
-            <div style="position: relative; height: 180px; overflow: hidden; border-radius: 20px 20px 0 0;">
-              <img src="https://images.unsplash.com/photo-1559314809-0d155014e29e?w=600&h=400&fit=crop" alt="Pad Thai with rice noodles, shrimp, and peanuts" class="recipe-card-img" style="width: 100%; height: 100%; object-fit: cover;">
-              <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
-              <span style="position: absolute; top: 12px; right: 12px;" class="deal-badge">-29% Meny</span>
-            </div>
-            <div style="padding: 14px 16px;">
-              <h3 style="font-family: 'Outfit'; font-weight: 600; font-size: 17px; color: #1a1207;">Pad Thai</h3>
-              <p style="font-size: 13px; color: #6b5e4f; margin-top: 2px;">Classic rice noodles with tamarind &amp; peanuts</p>
-              <div style="display: flex; gap: 8px; margin-top: 10px;">
-                <span class="pill">25 min</span>
-                <span class="pill">Easy</span>
-                <span class="pill font-bold">389 kr</span>
-              </div>
-            </div>
-          </a>
-
-          <!-- Green Curry — top right -->
-          <a href="recipes.html" class="glass recipe-card" style="border-radius: 20px; text-decoration: none; color: inherit;">
-            <div style="position: relative; height: 180px; overflow: hidden; border-radius: 20px 20px 0 0;">
-              <img src="https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=600&h=400&fit=crop" alt="Fragrant green curry with fresh Thai basil" class="recipe-card-img" style="width: 100%; height: 100%; object-fit: cover;">
-              <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
-              <span style="position: absolute; top: 12px; right: 12px;" class="deal-badge">-22% aFood</span>
-            </div>
-            <div style="padding: 14px 16px;">
-              <h3 style="font-family: 'Outfit'; font-weight: 600; font-size: 17px; color: #1a1207;">Green Curry</h3>
-              <p style="font-size: 13px; color: #6b5e4f; margin-top: 2px;">Fragrant coconut curry with chicken</p>
-              <div style="display: flex; gap: 8px; margin-top: 10px;">
-                <span class="pill">30 min</span>
-                <span class="pill">Easy</span>
-                <span class="pill font-bold">312 kr</span>
-              </div>
-            </div>
-          </a>
-
-          <!-- Tom Kha Gai — bottom left -->
-          <a href="recipes.html" class="glass recipe-card" style="border-radius: 20px; text-decoration: none; color: inherit;">
-            <div style="position: relative; height: 180px; overflow: hidden; border-radius: 20px 20px 0 0;">
-              <img src="https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=600&h=400&fit=crop" alt="Tom Kha Gai coconut galangal soup" class="recipe-card-img" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
-              <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
-              <span style="position: absolute; top: 12px; right: 12px;" class="deal-badge">-18% Meny</span>
-            </div>
-            <div style="padding: 14px 16px;">
-              <h3 style="font-family: 'Outfit'; font-weight: 600; font-size: 17px; color: #1a1207;">Tom Kha Gai</h3>
-              <p style="font-size: 13px; color: #6b5e4f; margin-top: 2px;">Coconut galangal soup with chicken</p>
-              <div style="display: flex; gap: 8px; margin-top: 10px;">
-                <span class="pill">20 min</span>
-                <span class="pill">Easy</span>
-                <span class="pill font-bold">287 kr</span>
-              </div>
-            </div>
-          </a>
-
-          <!-- Tom Yum — bottom right -->
-          <a href="recipes.html" class="glass recipe-card" style="border-radius: 20px; text-decoration: none; color: inherit;">
-            <div style="position: relative; height: 180px; overflow: hidden; border-radius: 20px 20px 0 0;">
-              <img src="https://images.unsplash.com/photo-1548943487-a2e4e43b4853?w=600&h=400&fit=crop" alt="Tom Yum Goong hot and sour soup with prawns" class="recipe-card-img" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
-              <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
-              <span style="position: absolute; top: 12px; right: 12px;" class="deal-badge">-25% aFood</span>
-            </div>
-            <div style="padding: 14px 16px;">
-              <h3 style="font-family: 'Outfit'; font-weight: 600; font-size: 17px; color: #1a1207;">Tom Yum Goong</h3>
-              <p style="font-size: 13px; color: #6b5e4f; margin-top: 2px;">Hot &amp; sour soup with prawns</p>
-              <div style="display: flex; gap: 8px; margin-top: 10px;">
-                <span class="pill">30 min</span>
-                <span class="pill">Medium</span>
-                <span class="pill font-bold">445 kr</span>
-              </div>
-            </div>
-          </a>
-        </div>
-      </div>
+      <span class="logo-name">hoely</span>
+      <span class="logo-tagline">Thai &amp; Asian recipes, real prices</span>
     </div>
 
-    <!-- Stat pills row -->
-    <div class="flex flex-wrap justify-center gap-4 mt-12 reveal" style="transition-delay: 0.3s;">
-      <div class="glass px-6 py-3 flex items-center gap-3" style="border-radius: 100px;">
-        <span class="text-2xl font-heading font-bold" style="color: #e68a00;">20+</span>
-        <span class="text-sm" style="color: #6b5e4f;">Recipes</span>
+    <!-- Search -->
+    <div class="search-area" id="sc">
+      <div class="search-box">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="8" cy="8" r="6.5"/><path d="M13.5 13.5l-3-3"/>
+        </svg>
+        <input type="text" id="q" class="search-input" placeholder="Search any dish..." autocomplete="off" aria-label="Search for a dish" role="combobox" aria-expanded="false" aria-controls="dd" />
+        <button class="clear-btn" id="cl" aria-label="Clear search"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l8 8M11 3l-8 8"/></svg></button>
+        <div class="spinner" id="sp"></div>
       </div>
-      <div class="glass px-6 py-3 flex items-center gap-3" style="border-radius: 100px;">
-        <span class="text-2xl font-heading font-bold" style="color: #0d9668;">7</span>
-        <span class="text-sm" style="color: #6b5e4f;">Active Deals</span>
-      </div>
-      <div class="glass px-6 py-3 flex items-center gap-3" style="border-radius: 100px;">
-        <span class="text-2xl font-heading font-bold" style="color: #7c4dba;">~18%</span>
-        <span class="text-sm" style="color: #6b5e4f;">Avg. Savings</span>
-      </div>
+      <div class="dd" id="dd" role="listbox"></div>
     </div>
 
-    <!-- Trust indicators row -->
-    <div class="flex flex-wrap justify-center gap-3 mt-5 reveal" style="transition-delay: 0.4s;">
-      <div class="glass-subtle px-4 py-2 flex items-center gap-2" style="border-radius: 100px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9e8e7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span class="text-xs font-medium" style="color: #6b5e4f;">Updated every Monday</span>
-      </div>
-      <div class="glass-subtle px-4 py-2 flex items-center gap-2" style="border-radius: 100px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9e8e7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-        <span class="text-xs font-medium" style="color: #6b5e4f;">20+ authentic recipes</span>
-      </div>
-      <div class="glass-subtle px-4 py-2 flex items-center gap-2" style="border-radius: 100px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9e8e7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span class="text-xs font-medium" style="color: #6b5e4f;">Prices from 2 stores</span>
-      </div>
-    </div>
-  </section>
+    <div class="hints" id="hints"></div>
 
-  <!-- ════════════════════════════════════════════ -->
-  <!-- INGREDIENT MARQUEE                          -->
-  <!-- ════════════════════════════════════════════ -->
-  <section class="py-6 px-4 reveal">
-    <div class="glass-subtle overflow-hidden py-4 px-2 max-w-7xl mx-auto" style="border-radius: 100px;">
-      <div class="marquee-track">
-        <span class="flex items-center gap-6 px-4 text-sm font-medium" style="color: #9e8e7a;">
-          <span>Bird's Eye Chili</span><span style="color: #d4b896;">&bull;</span>
-          <span>Coconut Milk</span><span style="color: #d4b896;">&bull;</span>
-          <span>Rice Noodles</span><span style="color: #d4b896;">&bull;</span>
-          <span>Galangal</span><span style="color: #d4b896;">&bull;</span>
-          <span>Thai Basil</span><span style="color: #d4b896;">&bull;</span>
-          <span>Fish Sauce</span><span style="color: #d4b896;">&bull;</span>
-          <span>Kaffir Lime</span><span style="color: #d4b896;">&bull;</span>
-          <span>Garlic</span><span style="color: #d4b896;">&bull;</span>
-          <span>Jasmine Rice</span><span style="color: #d4b896;">&bull;</span>
-          <span>Peanuts</span><span style="color: #d4b896;">&bull;</span>
-          <span>Lemongrass</span><span style="color: #d4b896;">&bull;</span>
-          <span>Shallots</span><span style="color: #d4b896;">&bull;</span>
-          <span>Tamarind</span><span style="color: #d4b896;">&bull;</span>
-          <span>Soy Sauce</span><span style="color: #d4b896;">&bull;</span>
-          <span>Palm Sugar</span><span style="color: #d4b896;">&bull;</span>
-        </span>
-        <span class="flex items-center gap-6 px-4 text-sm font-medium" style="color: #9e8e7a;">
-          <span>Bird's Eye Chili</span><span style="color: #d4b896;">&bull;</span>
-          <span>Coconut Milk</span><span style="color: #d4b896;">&bull;</span>
-          <span>Rice Noodles</span><span style="color: #d4b896;">&bull;</span>
-          <span>Galangal</span><span style="color: #d4b896;">&bull;</span>
-          <span>Thai Basil</span><span style="color: #d4b896;">&bull;</span>
-          <span>Fish Sauce</span><span style="color: #d4b896;">&bull;</span>
-          <span>Kaffir Lime</span><span style="color: #d4b896;">&bull;</span>
-          <span>Garlic</span><span style="color: #d4b896;">&bull;</span>
-          <span>Jasmine Rice</span><span style="color: #d4b896;">&bull;</span>
-          <span>Peanuts</span><span style="color: #d4b896;">&bull;</span>
-          <span>Lemongrass</span><span style="color: #d4b896;">&bull;</span>
-          <span>Shallots</span><span style="color: #d4b896;">&bull;</span>
-          <span>Tamarind</span><span style="color: #d4b896;">&bull;</span>
-          <span>Soy Sauce</span><span style="color: #d4b896;">&bull;</span>
-          <span>Palm Sugar</span><span style="color: #d4b896;">&bull;</span>
-        </span>
-      </div>
-    </div>
-  </section>
+    <div class="footer">Prices from Meny &amp; aFood Market</div>
 
-  <!-- ════════════════════════════════════════════ -->
-  <!-- HOW IT WORKS                                -->
-  <!-- ════════════════════════════════════════════ -->
-  <section class="py-16 px-4 md:px-8 max-w-7xl mx-auto">
-    <div class="reveal">
-      <p class="text-sm font-medium uppercase tracking-widest mb-2" style="color: #e68a00;">How It Works</p>
-      <h2 class="font-heading font-bold text-3xl md:text-4xl mb-10" style="color: #1a1207;">Three steps to dinner</h2>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- Step 1 -->
-      <div class="glass card-hover p-7 reveal" style="transition-delay: 0.05s;">
-        <div class="flex items-center gap-4 mb-5">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center font-heading font-bold text-sm text-white" style="background: linear-gradient(135deg, #e68a00, #f5a623);">1</div>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e68a00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-        </div>
-        <h3 class="font-heading font-semibold text-xl mb-2" style="color: #1a1207;">We check deals</h3>
-        <p class="text-sm leading-relaxed" style="color: #6b5e4f;">Every Monday, Hoely scans prices at Meny and aFood Market for the best offers on Asian ingredients.</p>
-      </div>
-      <!-- Step 2 -->
-      <div class="glass card-hover p-7 reveal" style="transition-delay: 0.1s;">
-        <div class="flex items-center gap-4 mb-5">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center font-heading font-bold text-sm text-white" style="background: linear-gradient(135deg, #e68a00, #f5a623);">2</div>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e68a00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-        </div>
-        <h3 class="font-heading font-semibold text-xl mb-2" style="color: #1a1207;">Match recipes</h3>
-        <p class="text-sm leading-relaxed" style="color: #6b5e4f;">Our AI picks recipes where sale items are key ingredients — maximizing your savings per meal.</p>
-      </div>
-      <!-- Step 3 -->
-      <div class="glass card-hover p-7 reveal" style="transition-delay: 0.15s;">
-        <div class="flex items-center gap-4 mb-5">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center font-heading font-bold text-sm text-white" style="background: linear-gradient(135deg, #e68a00, #f5a623);">3</div>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e68a00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1.5 2.5 3 4 3 6.5a3 3 0 01-6 0C9 6 10.5 4.5 12 2z"/><path d="M5 14c0 4.4 3.6 8 7 8s7-3.6 7-8c0-2-1-3.5-2-5"/><path d="M5.5 14c0 0 2-1 6.5-1s6.5 1 6.5 1"/></svg>
-        </div>
-        <h3 class="font-heading font-semibold text-xl mb-2" style="color: #1a1207;">You cook</h3>
-        <p class="text-sm leading-relaxed" style="color: #6b5e4f;">Follow step-by-step instructions with real prices, portions, and smart substitution tips.</p>
-      </div>
-    </div>
-  </section>
+  </div>
 
-  <!-- ════════════════════════════════════════════ -->
-  <!-- WEEKLY DEALS                                -->
-  <!-- ════════════════════════════════════════════ -->
-  <section id="deals" class="py-16 px-4 md:px-8 max-w-7xl mx-auto">
-    <div class="reveal">
-      <p class="text-sm font-medium uppercase tracking-widest mb-2" style="color: #e68a00;">This Week</p>
-      <h2 class="font-heading font-bold text-3xl md:text-4xl mb-10" style="color: #1a1207;">Cook more, spend less</h2>
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-      <!-- Deal 1: Pad Thai -->
-      <div class="glass recipe-card reveal" style="border-radius: 20px; transition-delay: 0.05s;">
-        <div style="position: relative; height: 180px; overflow: hidden; border-radius: 20px 20px 0 0;">
-          <img src="https://images.unsplash.com/photo-1559314809-0d155014e29e?w=600&h=400&fit=crop" alt="Pad Thai with rice noodles, shrimp, and crushed peanuts" class="recipe-card-img" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
-          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
-          <span style="position: absolute; top: 12px; right: 12px;" class="deal-badge">-29% Meny</span>
-          <div style="position: absolute; bottom: 12px; left: 12px;">
-            <span class="inline-flex items-center gap-1 text-xs font-medium text-white"><span class="w-1.5 h-1.5 rounded-full" style="background: #ffb74d;"></span>Thai</span>
-          </div>
-        </div>
-        <div style="padding: 16px;">
-          <h3 style="font-family: 'Outfit'; font-weight: 600; font-size: 18px; color: #1a1207;">Pad Thai</h3>
-          <p style="font-size: 13px; color: #6b5e4f; margin-top: 2px;">Rice noodles with shrimp &amp; peanuts</p>
-          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;">
-            <span class="pill">Easy</span>
-            <span class="pill">4 servings</span>
-            <span class="pill">25 min</span>
-          </div>
-          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 12px;">
-            <span style="font-size: 20px; font-weight: 700; color: #1a1207;">389 kr</span>
-            <span style="font-size: 13px; text-decoration: line-through; color: #9e8e7a;">548 kr</span>
-            <span style="font-size: 13px; font-weight: 600; color: #0d9668;">save 159 kr</span>
-          </div>
-        </div>
-      </div>
+<script>
+const q=document.getElementById('q'),dd=document.getElementById('dd'),sp=document.getElementById('sp'),cl=document.getElementById('cl');
+let ai=-1,dt=null,ac=null;
 
-      <!-- Deal 2: Green Curry -->
-      <div class="glass recipe-card reveal" style="border-radius: 20px; transition-delay: 0.1s;">
-        <div style="position: relative; height: 180px; overflow: hidden; border-radius: 20px 20px 0 0;">
-          <img src="https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=600&h=400&fit=crop" alt="Thai green curry in a bowl with fresh basil leaves" class="recipe-card-img" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
-          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
-          <span style="position: absolute; top: 12px; right: 12px;" class="deal-badge">-22% aFood</span>
-          <div style="position: absolute; bottom: 12px; left: 12px;">
-            <span class="inline-flex items-center gap-1 text-xs font-medium text-white"><span class="w-1.5 h-1.5 rounded-full" style="background: #66bb6a;"></span>Thai</span>
-          </div>
-        </div>
-        <div style="padding: 16px;">
-          <h3 style="font-family: 'Outfit'; font-weight: 600; font-size: 18px; color: #1a1207;">Green Curry</h3>
-          <p style="font-size: 13px; color: #6b5e4f; margin-top: 2px;">Coconut curry with chicken &amp; veg</p>
-          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;">
-            <span class="pill">Easy</span>
-            <span class="pill">4 servings</span>
-            <span class="pill">30 min</span>
-          </div>
-          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 12px;">
-            <span style="font-size: 20px; font-weight: 700; color: #1a1207;">312 kr</span>
-            <span style="font-size: 13px; text-decoration: line-through; color: #9e8e7a;">401 kr</span>
-            <span style="font-size: 13px; font-weight: 600; color: #0d9668;">save 89 kr</span>
-          </div>
-        </div>
-      </div>
 
-      <!-- Deal 3: Tom Yum Goong -->
-      <div class="glass recipe-card reveal" style="border-radius: 20px; transition-delay: 0.15s;">
-        <div style="position: relative; height: 180px; overflow: hidden; border-radius: 20px 20px 0 0;">
-          <img src="https://images.unsplash.com/photo-1548943487-a2e4e43b4853?w=600&h=400&fit=crop" alt="Tom Yum Goong hot and sour soup with prawns and mushrooms" class="recipe-card-img" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
-          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
-          <span style="position: absolute; top: 12px; right: 12px;" class="deal-badge">-25% aFood</span>
-          <div style="position: absolute; bottom: 12px; left: 12px;">
-            <span class="inline-flex items-center gap-1 text-xs font-medium text-white"><span class="w-1.5 h-1.5 rounded-full" style="background: #b39ddb;"></span>Thai</span>
-          </div>
-        </div>
-        <div style="padding: 16px;">
-          <h3 style="font-family: 'Outfit'; font-weight: 600; font-size: 18px; color: #1a1207;">Tom Yum Goong</h3>
-          <p style="font-size: 13px; color: #6b5e4f; margin-top: 2px;">Hot &amp; sour soup with prawns</p>
-          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;">
-            <span class="pill">Medium</span>
-            <span class="pill">4 servings</span>
-            <span class="pill">30 min</span>
-          </div>
-          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 12px;">
-            <span style="font-size: 20px; font-weight: 700; color: #1a1207;">445 kr</span>
-            <span style="font-size: 13px; text-decoration: line-through; color: #9e8e7a;">593 kr</span>
-            <span style="font-size: 13px; font-weight: 600; color: #0d9668;">save 148 kr</span>
-          </div>
-        </div>
-      </div>
+// ── Comprehensive dish database with curated TheMealDB images ──
+// Thai section aims for complete coverage of all well-known Thai dishes
+const T='https://www.themealdb.com/images/media/meals/'; // TheMealDB image base
+const localDishes=[
+  // ═══ THAI — Curries (แกง) ═══
+  {name:"Green Curry",cuisine:"Thai",category:"Curry",tags:"gaeng khiao wan,coconut,spicy,green chili,chicken",image:T+"sstssx1487349585.jpg"},
+  {name:"Gaeng Khiao Wan",cuisine:"Thai",category:"Curry",tags:"green curry,coconut,thai eggplant,basil",image:T+"sstssx1487349585.jpg"},
+  {name:"Red Curry",cuisine:"Thai",category:"Curry",tags:"gaeng phet,coconut,spicy,red chili,bamboo",image:"img/red-curry.jpg"},
+  {name:"Yellow Curry",cuisine:"Thai",category:"Curry",tags:"gaeng lueng,coconut,mild,turmeric,potato",image:"img/yellow-curry.jpg"},
+  {name:"Massaman Curry",cuisine:"Thai",category:"Curry",tags:"gaeng massaman,peanuts,mild,potato,cinnamon",image:T+"tvttqv1504640475.jpg"},
+  {name:"Panang Curry",cuisine:"Thai",category:"Curry",tags:"panaeng,thick,creamy,kaffir lime,peanut",image:T+"0dhtwr1763371444.jpg"},
+  {name:"Khao Soi",cuisine:"Thai",category:"Curry Noodles",tags:"northern,chiang mai,coconut,egg noodles,crispy",image:T+"118oj61763423896.jpg"},
+  {name:"Gaeng Som",cuisine:"Thai",category:"Curry",tags:"sour curry,southern,fish,turmeric,tamarind",image:"img/gaeng-som.jpg"},
+  {name:"Gaeng Hung Lay",cuisine:"Thai",category:"Curry",tags:"northern,pork belly,burmese,ginger,tamarind",image:"img/gaeng-hung-lay.jpg"},
+  {name:"Gaeng Pa",cuisine:"Thai",category:"Curry",tags:"jungle curry,spicy,no coconut,wild herbs,peppercorn",image:"img/gaeng-pa.jpg"},
+  {name:"Gaeng Tai Pla",cuisine:"Thai",category:"Curry",tags:"southern,fish organs,fermented,spicy,intense",image:"img/gaeng-tai-pla.jpg"},
+  {name:"Gaeng Liang",cuisine:"Thai",category:"Curry",tags:"mixed vegetable,shrimp paste,pepper,healthy,light",image:"img/gaeng-liang.jpg"},
+  {name:"Chu Chee",cuisine:"Thai",category:"Curry",tags:"thick curry,fish,kaffir lime,no soup,red curry paste",image:"img/chu-chee.jpg"},
+  {name:"Gaeng Kari",cuisine:"Thai",category:"Curry",tags:"yellow curry,mild,potato,onion,chicken",image:T+"snmtd61763426568.jpg"},
+  {name:"Gaeng Jued",cuisine:"Thai",category:"Soup",tags:"clear soup,tofu,glass noodles,mild,pork",image:"img/gaeng-jued.jpg"},
+  {name:"Panaeng Neua",cuisine:"Thai",category:"Curry",tags:"panang beef,thick,creamy,kaffir lime",image:"img/panaeng-neua.jpg"},
 
-      <!-- Deal 4: Khao Pad -->
-      <div class="glass recipe-card reveal" style="border-radius: 20px; transition-delay: 0.2s;">
-        <div style="position: relative; height: 180px; overflow: hidden; border-radius: 20px 20px 0 0;">
-          <img src="https://images.unsplash.com/photo-1553163147-622ab57be1c7?w=600&h=400&fit=crop" alt="Thai fried rice Khao Pad with egg and fresh vegetables" class="recipe-card-img" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
-          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
-          <div style="position: absolute; bottom: 12px; left: 12px;">
-            <span class="inline-flex items-center gap-1 text-xs font-medium text-white"><span class="w-1.5 h-1.5 rounded-full" style="background: #ff8a65;"></span>Thai</span>
-          </div>
-        </div>
-        <div style="padding: 16px;">
-          <h3 style="font-family: 'Outfit'; font-weight: 600; font-size: 18px; color: #1a1207;">Khao Pad</h3>
-          <p style="font-size: 13px; color: #6b5e4f; margin-top: 2px;">Thai fried rice with egg &amp; vegetables</p>
-          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;">
-            <span class="pill">Easy</span>
-            <span class="pill">4 servings</span>
-            <span class="pill">15 min</span>
-          </div>
-          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 12px;">
-            <span style="font-size: 20px; font-weight: 700; color: #1a1207;">298 kr</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  // ═══ THAI — Soups (ต้ม) ═══
+  {name:"Tom Yum Goong",cuisine:"Thai",category:"Soup",tags:"tom yum,shrimp,spicy,sour,lemongrass,galangal",image:T+"l50vz41763422681.jpg"},
+  {name:"Tom Yum Gai",cuisine:"Thai",category:"Soup",tags:"tom yum,chicken,spicy,sour,lemongrass",image:"img/tom-yum-gai.jpg"},
+  {name:"Tom Kha Gai",cuisine:"Thai",category:"Soup",tags:"coconut,chicken,galangal,creamy,mushroom",image:T+"ol2xxt1763582263.jpg"},
+  {name:"Khao Tom",cuisine:"Thai",category:"Soup",tags:"rice soup,breakfast,pork,ginger,comfort food",image:"img/khao-tom.jpg"},
+  {name:"Tom Saap",cuisine:"Thai",category:"Soup",tags:"isaan,spicy,sour,pork ribs,northeastern",image:"img/tom-saap.jpg"},
+  {name:"Tom Jued Woon Sen",cuisine:"Thai",category:"Soup",tags:"clear soup,glass noodles,pork,mild",image:"img/tom-jued-woon-sen.jpg"},
 
-  <!-- ════════════════════════════════════════════ -->
-  <!-- MEAL PLAN                                   -->
-  <!-- ════════════════════════════════════════════ -->
-  <section id="meal-plan" class="py-16 px-4 md:px-8 max-w-7xl mx-auto">
-    <div class="reveal">
-      <p class="text-sm font-medium uppercase tracking-widest mb-2" style="color: #e68a00;">Smart Planning</p>
-      <h2 class="font-heading font-bold text-3xl md:text-4xl mb-10" style="color: #1a1207;">Your week, planned</h2>
-    </div>
+  // ═══ THAI — Noodles (ก๋วยเตี๋ยว) ═══
+  {name:"Pad Thai",cuisine:"Thai",category:"Noodles",tags:"rice noodles,tamarind,peanuts,street food,shrimp,egg",image:T+"rg9ze01763479093.jpg"},
+  {name:"Pad See Ew",cuisine:"Thai",category:"Noodles",tags:"wide noodles,soy sauce,chinese broccoli,stir-fry",image:T+"uuuspp1468263334.jpg"},
+  {name:"Pad Woon Sen",cuisine:"Thai",category:"Noodles",tags:"glass noodles,stir-fry,egg,vegetables",image:"img/pad-woon-sen.jpg"},
+  {name:"Drunken Noodles",cuisine:"Thai",category:"Noodles",tags:"pad kee mao,spicy,basil,wide noodles,chili",image:T+"2wx8cm1763373419.jpg"},
+  {name:"Pad Kee Mao",cuisine:"Thai",category:"Noodles",tags:"drunken noodles,spicy,basil,wide noodles",image:T+"2wx8cm1763373419.jpg"},
+  {name:"Guay Tiew",cuisine:"Thai",category:"Noodles",tags:"noodle soup,street food,pork,beef,chicken,broth",image:"img/guay-tiew.jpg"},
+  {name:"Guay Tiew Reua",cuisine:"Thai",category:"Noodles",tags:"boat noodles,dark broth,pork blood,intense,street food",image:"img/guay-tiew-reua.jpg"},
+  {name:"Kuay Chap",cuisine:"Thai",category:"Noodles",tags:"rolled noodles,pork,five spice,offal,broth",image:"img/kuay-chap.jpg"},
+  {name:"Yen Ta Fo",cuisine:"Thai",category:"Noodles",tags:"pink noodles,fermented tofu,seafood,sweet,sour",image:"img/yen-ta-fo.jpg"},
+  {name:"Bamee",cuisine:"Thai",category:"Noodles",tags:"egg noodles,wonton,pork,roast duck",image:"img/bamee.jpg"},
+  {name:"Rad Na",cuisine:"Thai",category:"Noodles",tags:"gravy noodles,wide noodles,broccoli,pork,thick sauce",image:"img/rad-na.jpg"},
+  {name:"Khanom Jeen",cuisine:"Thai",category:"Noodles",tags:"rice noodles,curry,fermented,fish curry,green curry",image:"img/khanom-jeen.jpg"},
+  {name:"Khanom Jeen Nam Ya",cuisine:"Thai",category:"Noodles",tags:"rice noodles,fish curry,southern,spicy",image:"img/khanom-jeen-nam-ya.jpg"},
+  {name:"Sukiyaki Thai",cuisine:"Thai",category:"Noodles",tags:"glass noodles,hot pot,egg,sweet sauce,seafood",image:"img/sukiyaki-thai.jpg"},
+  {name:"Mee Krob",cuisine:"Thai",category:"Noodles",tags:"crispy noodles,sweet,tangy,shrimp,palm sugar",image:"img/mee-krob.jpg"},
 
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-      <!-- Monday — Hero card with Massaman Curry photo -->
-      <div class="col-span-2 md:col-span-2 lg:col-span-2 lg:row-span-2 reveal" style="transition-delay: 0.05s;">
-        <div class="card-hover relative overflow-hidden flex flex-col justify-end" style="border-radius: 24px; min-height: 340px;">
-          <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&h=400&fit=crop" alt="Massaman Curry with potatoes and peanuts" loading="lazy" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">
-          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 40%, transparent 70%);"></div>
-          <div style="position: relative; z-index: 1; padding: 24px;">
-            <span class="glass-pill mb-3 inline-block" style="background: rgba(255,255,255,0.2); color: #fff;">Monday</span>
-            <h3 class="font-heading font-bold text-2xl mt-2 mb-1" style="color: #fff;">Massaman Curry</h3>
-            <p class="text-sm" style="color: rgba(255,255,255,0.8);">Rich peanut curry with potatoes, slow-cooked chicken, and warm spices</p>
-            <div class="flex gap-2 mt-4">
-              <span class="glass-pill" style="background: rgba(255,255,255,0.2); color: #fff;">40 min</span>
-              <span class="glass-pill" style="background: rgba(255,255,255,0.2); color: #fff;">467 kr / 4 servings</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Tue -->
-      <div class="glass card-hover p-4 flex flex-col justify-between reveal" style="min-height: 140px; transition-delay: 0.1s;">
-        <div>
-          <span class="glass-pill mb-2 inline-block">Tue</span>
-          <h3 class="font-heading font-semibold text-sm mt-1" style="color: #1a1207;">Pad Thai</h3>
-        </div>
-        <div class="flex flex-wrap gap-1 mt-2">
-          <span class="glass-pill">25m</span>
-          <span class="glass-pill">389 kr</span>
-        </div>
-      </div>
-      <!-- Wed -->
-      <div class="glass card-hover p-4 flex flex-col justify-between reveal" style="min-height: 140px; transition-delay: 0.15s;">
-        <div>
-          <span class="glass-pill mb-2 inline-block">Wed</span>
-          <h3 class="font-heading font-semibold text-sm mt-1" style="color: #1a1207;">Tom Kha Gai</h3>
-        </div>
-        <div class="flex flex-wrap gap-1 mt-2">
-          <span class="glass-pill">20m</span>
-          <span class="glass-pill">287 kr</span>
-        </div>
-      </div>
-      <!-- Thu -->
-      <div class="glass card-hover p-4 flex flex-col justify-between reveal" style="min-height: 140px; transition-delay: 0.2s;">
-        <div>
-          <span class="glass-pill mb-2 inline-block">Thu</span>
-          <h3 class="font-heading font-semibold text-sm mt-1" style="color: #1a1207;">Green Curry</h3>
-        </div>
-        <div class="flex flex-wrap gap-1 mt-2">
-          <span class="glass-pill">30m</span>
-          <span class="glass-pill">312 kr</span>
-        </div>
-      </div>
-      <!-- Fri -->
-      <div class="glass card-hover p-4 flex flex-col justify-between reveal" style="min-height: 140px; transition-delay: 0.25s;">
-        <div>
-          <span class="glass-pill mb-2 inline-block">Fri</span>
-          <h3 class="font-heading font-semibold text-sm mt-1" style="color: #1a1207;">Khao Pad</h3>
-        </div>
-        <div class="flex flex-wrap gap-1 mt-2">
-          <span class="glass-pill">15m</span>
-          <span class="glass-pill">298 kr</span>
-        </div>
-      </div>
-      <!-- Sat -->
-      <div class="glass card-hover p-4 flex flex-col justify-between reveal" style="min-height: 140px; transition-delay: 0.3s;">
-        <div>
-          <span class="glass-pill mb-2 inline-block">Sat</span>
-          <h3 class="font-heading font-semibold text-sm mt-1" style="color: #1a1207;">Tom Yum</h3>
-        </div>
-        <div class="flex flex-wrap gap-1 mt-2">
-          <span class="glass-pill">25m</span>
-          <span class="glass-pill">445 kr</span>
-        </div>
-      </div>
-      <!-- Sun -->
-      <div class="glass card-hover p-4 flex flex-col justify-between reveal" style="min-height: 140px; transition-delay: 0.35s;">
-        <div>
-          <span class="glass-pill mb-2 inline-block">Sun</span>
-          <h3 class="font-heading font-semibold text-sm mt-1" style="color: #1a1207;">Larb Gai</h3>
-        </div>
-        <div class="flex flex-wrap gap-1 mt-2">
-          <span class="glass-pill">20m</span>
-          <span class="glass-pill">298 kr</span>
-        </div>
-      </div>
-    </div>
+  // ═══ THAI — Stir-fries (ผัด) ═══
+  {name:"Pad Kra Pao",cuisine:"Thai",category:"Stir-fry",tags:"holy basil,street food,chili,minced pork,fried egg",image:T+"el64dy1763483009.jpg"},
+  {name:"Pad Prik King",cuisine:"Thai",category:"Stir-fry",tags:"red curry paste,green beans,kaffir lime,dry curry",image:"img/pad-prik-king.jpg"},
+  {name:"Pad Cashew Chicken",cuisine:"Thai",category:"Stir-fry",tags:"gai pad met mamuang,cashew nuts,dried chili,sweet",image:"img/pad-cashew-chicken.jpg"},
+  {name:"Pad Prik Gaeng",cuisine:"Thai",category:"Stir-fry",tags:"curry paste stir-fry,pork,green beans,spicy",image:"img/pad-prik-gaeng.jpg"},
+  {name:"Pad Phak Bung",cuisine:"Thai",category:"Stir-fry",tags:"morning glory,fire wok,garlic,chili,street food",image:"img/pad-phak-bung.jpg"},
+  {name:"Pad Phak Ruam",cuisine:"Thai",category:"Stir-fry",tags:"mixed vegetables,oyster sauce,garlic,healthy",image:"img/pad-phak-ruam.jpg"},
+  {name:"Kai Pad Prik",cuisine:"Thai",category:"Stir-fry",tags:"chicken,chili,bell pepper,onion",image:"img/kai-pad-prik.jpg"},
+  {name:"Neua Pad Prik",cuisine:"Thai",category:"Stir-fry",tags:"beef,chili,basil,oyster sauce",image:"img/neua-pad-prik.jpg"},
+  {name:"Pla Rad Prik",cuisine:"Thai",category:"Stir-fry",tags:"fried fish,chili sauce,sweet,sour,crispy",image:"img/pla-rad-prik.jpg"},
 
-    <!-- Stats bar -->
-    <div class="glass-strong mt-6 p-5 reveal" style="transition-delay: 0.15s;">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-        <div>
-          <p class="font-heading font-bold text-2xl" style="color: #1a1207;">7</p>
-          <p class="text-xs" style="color: #9e8e7a;">Dinners Planned</p>
-        </div>
-        <div>
-          <p class="font-heading font-bold text-2xl" style="color: #e68a00;">2 496 kr</p>
-          <p class="text-xs" style="color: #9e8e7a;">Total Cost</p>
-        </div>
-        <div>
-          <p class="font-heading font-bold text-2xl" style="color: #0d9668;">508 kr</p>
-          <p class="text-xs" style="color: #9e8e7a;">You Save</p>
-        </div>
-        <div>
-          <p class="font-heading font-bold text-2xl" style="color: #7c4dba;">~26 min</p>
-          <p class="text-xs" style="color: #9e8e7a;">Avg. Cook Time</p>
-        </div>
+  // ═══ THAI — Rice dishes (ข้าว) ═══
+  {name:"Khao Pad",cuisine:"Thai",category:"Fried Rice",tags:"fried rice,egg,quick,garlic,onion",image:T+"hblwvg1763478203.jpg"},
+  {name:"Khao Pad Gai",cuisine:"Thai",category:"Fried Rice",tags:"chicken fried rice,egg,garlic,soy sauce",image:"img/khao-pad-gai.jpg"},
+  {name:"Khao Pad Goong",cuisine:"Thai",category:"Fried Rice",tags:"shrimp fried rice,egg,garlic",image:"img/khao-pad-goong.jpg"},
+  {name:"Khao Pad Sapparod",cuisine:"Thai",category:"Fried Rice",tags:"pineapple fried rice,curry powder,raisins,cashews",image:"img/khao-pad-sapparod.jpg"},
+  {name:"Khao Man Gai",cuisine:"Thai",category:"Rice",tags:"chicken rice,hainanese,poached chicken,ginger sauce,street food",image:"img/khao-man-gai.jpg"},
+  {name:"Khao Moo Daeng",cuisine:"Thai",category:"Rice",tags:"red pork rice,bbq pork,sweet sauce,street food",image:"img/khao-moo-daeng.jpg"},
+  {name:"Khao Kha Moo",cuisine:"Thai",category:"Rice",tags:"braised pork leg,five spice,egg,pickled mustard,street food",image:"img/khao-kha-moo.jpg"},
+  {name:"Khao Na Ped",cuisine:"Thai",category:"Rice",tags:"roast duck rice,gravy,chinese-thai",image:"img/khao-na-ped.jpg"},
+  {name:"Khao Mok Gai",cuisine:"Thai",category:"Rice",tags:"thai biryani,chicken,turmeric,spiced rice,southern",image:"img/khao-mok-gai.jpg"},
+  {name:"Khao Kluk Kapi",cuisine:"Thai",category:"Rice",tags:"shrimp paste rice,sweet pork,green mango,dried shrimp",image:"img/khao-kluk-kapi.jpg"},
+  {name:"Khao Niao",cuisine:"Thai",category:"Rice",tags:"sticky rice,isaan,glutinous rice,northeastern",image:"img/khao-niao.jpg"},
+
+  // ═══ THAI — Salads (ยำ/ส้มตำ) ═══
+  {name:"Som Tam",cuisine:"Thai",category:"Salad",tags:"papaya salad,spicy,northeastern,isaan,lime,chili",image:"img/som-tam.jpg"},
+  {name:"Som Tam Thai",cuisine:"Thai",category:"Salad",tags:"papaya salad,peanuts,dried shrimp,sweet",image:"img/som-tam-thai.jpg"},
+  {name:"Som Tam Poo Pla Ra",cuisine:"Thai",category:"Salad",tags:"papaya salad,fermented fish,crab,isaan,intense",image:"img/som-tam-poo-pla-ra.jpg"},
+  {name:"Larb",cuisine:"Thai",category:"Salad",tags:"minced meat,northeastern,isaan,lime,mint,toasted rice",image:"img/larb.jpg"},
+  {name:"Larb Moo",cuisine:"Thai",category:"Salad",tags:"minced pork,isaan,lime,chili,herbs",image:"img/larb-moo.jpg"},
+  {name:"Larb Gai",cuisine:"Thai",category:"Salad",tags:"minced chicken,isaan,lime,chili,herbs",image:"img/larb-gai.jpg"},
+  {name:"Nam Tok",cuisine:"Thai",category:"Salad",tags:"waterfall beef,grilled,northeastern,lime,toasted rice",image:"img/nam-tok.jpg"},
+  {name:"Yam Woon Sen",cuisine:"Thai",category:"Salad",tags:"glass noodle salad,shrimp,spicy,lime,herbs",image:"img/yam-woon-sen.jpg"},
+  {name:"Yam Talay",cuisine:"Thai",category:"Salad",tags:"seafood salad,spicy,lime,lemongrass,shrimp,squid",image:"img/yam-talay.jpg"},
+  {name:"Yam Neua",cuisine:"Thai",category:"Salad",tags:"beef salad,spicy,lime,onion,herbs",image:"img/yam-neua.jpg"},
+  {name:"Yam Pla Dook Foo",cuisine:"Thai",category:"Salad",tags:"crispy catfish,green mango,spicy,fluffy",image:"img/yam-pla-dook-foo.jpg"},
+  {name:"Yam Mamuang",cuisine:"Thai",category:"Salad",tags:"green mango salad,spicy,sweet,sour,cashew",image:"img/yam-mamuang.jpg"},
+  {name:"Yam Khai Dao",cuisine:"Thai",category:"Salad",tags:"fried egg salad,spicy,lime,onion",image:"img/yam-khai-dao.jpg"},
+  {name:"Phla Goong",cuisine:"Thai",category:"Salad",tags:"spicy shrimp salad,lemongrass,lime,herbs",image:"img/phla-goong.jpg"},
+
+  // ═══ THAI — Grilled (ย่าง/ปิ้ง) ═══
+  {name:"Gai Yang",cuisine:"Thai",category:"Grilled",tags:"grilled chicken,northeastern,isaan,street food,sticky rice",image:T+"ittake1763586925.jpg"},
+  {name:"Moo Ping",cuisine:"Thai",category:"Grilled",tags:"grilled pork skewers,street food,sticky rice,sweet marinade",image:"img/moo-ping.jpg"},
+  {name:"Satay",cuisine:"Thai",category:"Grilled",tags:"chicken satay,peanut sauce,skewers,turmeric,cucumber relish",image:"img/satay.jpg"},
+  {name:"Kor Moo Yang",cuisine:"Thai",category:"Grilled",tags:"grilled pork neck,isaan,spicy dipping sauce,nam jim jaew",image:"img/kor-moo-yang.jpg"},
+  {name:"Pla Pao",cuisine:"Thai",category:"Grilled",tags:"salt-crusted grilled fish,lemongrass,whole fish,street food",image:"img/pla-pao.jpg"},
+  {name:"Sai Krok Isaan",cuisine:"Thai",category:"Grilled",tags:"fermented sausage,northeastern,sour,rice,pork",image:"img/sai-krok-isaan.jpg"},
+  {name:"Suea Rong Hai",cuisine:"Thai",category:"Grilled",tags:"crying tiger,grilled beef,spicy dipping sauce,isaan",image:"img/suea-rong-hai.jpg"},
+  {name:"Moo Satay",cuisine:"Thai",category:"Grilled",tags:"pork satay,peanut sauce,skewers,turmeric",image:"img/moo-satay.jpg"},
+
+  // ═══ THAI — Fried & Street Food (ทอด) ═══
+  {name:"Tod Mun Pla",cuisine:"Thai",category:"Appetizer",tags:"fish cakes,curry paste,fried,kaffir lime,green beans",image:T+"6s3i3p1763488540.jpg"},
+  {name:"Kai Jeow",cuisine:"Thai",category:"Omelette",tags:"thai omelette,egg,street food,quick,fish sauce",image:"img/kai-jeow.jpg"},
+  {name:"Kai Jeow Moo Sap",cuisine:"Thai",category:"Omelette",tags:"omelette,minced pork,street food",image:"img/kai-jeow-moo-sap.jpg"},
+  {name:"Gai Tod",cuisine:"Thai",category:"Fried",tags:"thai fried chicken,garlic,fish sauce,crispy,street food",image:"img/gai-tod.jpg"},
+  {name:"Gai Tod Hat Yai",cuisine:"Thai",category:"Fried",tags:"hat yai fried chicken,southern,turmeric,crispy shallots",image:"img/gai-tod-hat-yai.jpg"},
+  {name:"Moo Tod Gratiem",cuisine:"Thai",category:"Fried",tags:"fried pork,garlic,pepper,street food",image:"img/moo-tod-gratiem.jpg"},
+  {name:"Poh Pia Tod",cuisine:"Thai",category:"Appetizer",tags:"spring rolls,fried,crispy,pork,vegetables",image:"img/poh-pia-tod.jpg"},
+  {name:"Poh Pia Sod",cuisine:"Thai",category:"Appetizer",tags:"fresh spring rolls,rice paper,shrimp,herbs,no fry",image:"img/poh-pia-sod.jpg"},
+  {name:"Hoy Tod",cuisine:"Thai",category:"Street Food",tags:"crispy mussel omelette,egg,starch,bean sprouts",image:"img/hoy-tod.jpg"},
+  {name:"Look Chin",cuisine:"Thai",category:"Street Food",tags:"meatballs,fish balls,pork balls,skewers,street food",image:"img/look-chin.jpg"},
+  {name:"Khanom Buang",cuisine:"Thai",category:"Street Food",tags:"thai crepes,crispy,sweet,meringue,coconut",image:"img/khanom-buang.jpg"},
+  {name:"Goong Sarong",cuisine:"Thai",category:"Appetizer",tags:"shrimp wrapped in noodles,deep fried,crispy",image:"img/goong-sarong.jpg"},
+  {name:"Thot Man Khao Pod",cuisine:"Thai",category:"Appetizer",tags:"corn cakes,fried,curry paste,sweet corn",image:"img/thot-man-khao-pod.jpg"},
+
+  // ═══ THAI — Dips & Sauces (น้ำพริก) ═══
+  {name:"Nam Prik Ong",cuisine:"Thai",category:"Dip",tags:"northern,tomato chili dip,pork,served with vegetables",image:"img/nam-prik-ong.jpg"},
+  {name:"Nam Prik Noom",cuisine:"Thai",category:"Dip",tags:"northern,green chili dip,roasted,smoky",image:"img/nam-prik-noom.jpg"},
+  {name:"Nam Jim Jaew",cuisine:"Thai",category:"Dip",tags:"isaan dipping sauce,chili,lime,toasted rice,fish sauce",image:"img/nam-jim-jaew.jpg"},
+  {name:"Nam Prik Goong Siap",cuisine:"Thai",category:"Dip",tags:"dried shrimp dip,southern,spicy",image:"img/nam-prik-goong-siap.jpg"},
+  {name:"Nam Prik Kapi",cuisine:"Thai",category:"Dip",tags:"shrimp paste dip,chili,lime,served with fried mackerel",image:"img/nam-prik-kapi.jpg"},
+  {name:"Lon Tao Jiaw",cuisine:"Thai",category:"Dip",tags:"soybean dip,coconut milk,sweet,mild",image:"img/lon-tao-jiaw.jpg"},
+
+  // ═══ THAI — Other mains ═══
+  {name:"Kai Palo",cuisine:"Thai",category:"Braised",tags:"five spice eggs,pork,tofu,chinese-thai,star anise",image:"img/kai-palo.jpg"},
+  {name:"Moo Hong",cuisine:"Thai",category:"Braised",tags:"southern braised pork,pepper,garlic,palm sugar,slow cooked",image:"img/moo-hong.jpg"},
+  {name:"Pla Nueng Manao",cuisine:"Thai",category:"Steamed",tags:"steamed fish,lime,chili,garlic,sour,spicy",image:"img/pla-nueng-manao.jpg"},
+  {name:"Pla Sam Rod",cuisine:"Thai",category:"Fried",tags:"three flavored fish,sweet,sour,spicy,crispy",image:"img/pla-sam-rod.jpg"},
+  {name:"Neua Toon",cuisine:"Thai",category:"Braised",tags:"braised beef,five spice,slow cooked,noodle soup",image:"img/neua-toon.jpg"},
+  {name:"Ho Mok",cuisine:"Thai",category:"Steamed",tags:"fish curry custard,banana leaf,coconut,steamed",image:"img/ho-mok.jpg"},
+  {name:"Pla Meuk Yang",cuisine:"Thai",category:"Grilled",tags:"grilled squid,seafood,street food,dipping sauce",image:"img/pla-meuk-yang.jpg"},
+
+  // ═══ THAI — Desserts (ขนม) ═══
+  {name:"Kao Niao Mamuang",cuisine:"Thai",category:"Dessert",tags:"mango sticky rice,coconut milk,sweet,iconic",image:"img/kao-niao-mamuang.jpg"},
+  {name:"Tub Tim Grob",cuisine:"Thai",category:"Dessert",tags:"water chestnuts,red,coconut milk,ice,crunchy",image:"img/tub-tim-grob.jpg"},
+  {name:"Bua Loi",cuisine:"Thai",category:"Dessert",tags:"rice balls,coconut cream,warm,sweet,taro,pandan",image:"img/bua-loi.jpg"},
+  {name:"Khanom Krok",cuisine:"Thai",category:"Dessert",tags:"coconut pancakes,crispy,sweet,street food,pandan",image:"img/khanom-krok.jpg"},
+  {name:"Sangkaya Fak Thong",cuisine:"Thai",category:"Dessert",tags:"pumpkin custard,coconut,egg,steamed,sweet",image:"img/sangkaya-fak-thong.jpg"},
+  {name:"Lod Chong",cuisine:"Thai",category:"Dessert",tags:"pandan noodles,coconut milk,palm sugar,green,iced",image:"img/lod-chong.jpg"},
+  {name:"Foi Thong",cuisine:"Thai",category:"Dessert",tags:"golden threads,egg yolk,sugar syrup,portuguese origin",image:"img/foi-thong.jpg"},
+  {name:"Kluay Buat Chi",cuisine:"Thai",category:"Dessert",tags:"bananas in coconut milk,warm,sweet,simple",image:"img/kluay-buat-chi.jpg"},
+  {name:"Khanom Tuay",cuisine:"Thai",category:"Dessert",tags:"coconut custard cups,pandan,two layers,steamed",image:"img/khanom-tuay.jpg"},
+  {name:"Itim Kati",cuisine:"Thai",category:"Dessert",tags:"coconut ice cream,street food,toppings,peanuts,sweet corn",image:"img/itim-kati.jpg"},
+  {name:"Khanom Tan",cuisine:"Thai",category:"Dessert",tags:"palm sugar cakes,steamed,fluffy,traditional",image:"img/khanom-tan.jpg"},
+  {name:"Khao Lam",cuisine:"Thai",category:"Dessert",tags:"bamboo sticky rice,coconut,sweet,grilled,black beans",image:"img/khao-lam.jpg"},
+  {name:"Roti",cuisine:"Thai",category:"Dessert",tags:"thai roti,street food,banana,egg,condensed milk,crispy",image:"img/roti.jpg"},
+
+  // ═══ Korean ═══
+  {name:"Bibimbap",cuisine:"Korean",category:"Rice Bowl",tags:"vegetables,gochujang,egg",image:"img/bibimbap.jpg"},
+  {name:"Kimchi Jjigae",cuisine:"Korean",category:"Stew",tags:"kimchi,tofu,pork",image:"img/kimchi-jjigae.jpg"},
+  {name:"Bulgogi",cuisine:"Korean",category:"Grilled",tags:"beef,marinated,sesame",image:"img/bulgogi.jpg"},
+  {name:"Japchae",cuisine:"Korean",category:"Noodles",tags:"glass noodles,sweet,vegetables",image:"img/japchae.jpg"},
+  {name:"Tteokbokki",cuisine:"Korean",category:"Street Food",tags:"rice cakes,spicy,gochujang",image:"img/tteokbokki.jpg"},
+  {name:"Korean Fried Chicken",cuisine:"Korean",category:"Fried",tags:"chicken,crispy,gochujang",image:"img/korean-fried-chicken.jpg"},
+  {name:"Sundubu Jjigae",cuisine:"Korean",category:"Stew",tags:"soft tofu,spicy,egg",image:"img/sundubu-jjigae.jpg"},
+
+  // ═══ Vietnamese ═══
+  {name:"Pho",cuisine:"Vietnamese",category:"Soup",tags:"noodles,beef,broth,star anise",image:T+"pbzcrx1763765096.jpg"},
+  {name:"Banh Mi",cuisine:"Vietnamese",category:"Sandwich",tags:"baguette,pork,pickled vegetables",image:T+"z0ageb1583189517.jpg"},
+  {name:"Bun Cha",cuisine:"Vietnamese",category:"Noodles",tags:"grilled pork,hanoi,dipping sauce",image:T+"qqwypw1504642429.jpg"},
+  {name:"Bun Bo Hue",cuisine:"Vietnamese",category:"Soup",tags:"spicy,lemongrass,beef",image:"img/bun-bo-hue.jpg"},
+
+  // ═══ Japanese ═══
+  {name:"Ramen",cuisine:"Japanese",category:"Soup",tags:"noodles,broth,pork,egg",image:T+"ip5xtp1769779958.jpg"},
+  {name:"Gyoza",cuisine:"Japanese",category:"Dumplings",tags:"pan-fried,pork,dipping sauce",image:"img/gyoza.jpg"},
+  {name:"Katsu Curry",cuisine:"Japanese",category:"Curry",tags:"pork,breaded,rice",image:T+"vwrpps1503068729.jpg"},
+  {name:"Okonomiyaki",cuisine:"Japanese",category:"Pancake",tags:"cabbage,osaka,savory",image:"img/okonomiyaki.jpg"},
+  {name:"Yakitori",cuisine:"Japanese",category:"Grilled",tags:"chicken,skewers,tare",image:"img/yakitori.jpg"},
+  {name:"Tonkotsu Ramen",cuisine:"Japanese",category:"Soup",tags:"pork bone,rich,noodles,egg",image:T+"ip5xtp1769779958.jpg"},
+  {name:"Teriyaki Chicken",cuisine:"Japanese",category:"Grilled",tags:"chicken,sweet,soy,rice",image:T+"wvpsxx1468256321.jpg"},
+
+  // ═══ Chinese ═══
+  {name:"Mapo Tofu",cuisine:"Chinese",category:"Stir-fry",tags:"tofu,sichuan,spicy,numbing",image:T+"1525874812.jpg"},
+  {name:"Dan Dan Noodles",cuisine:"Chinese",category:"Noodles",tags:"sichuan,peanuts,spicy",image:"img/dan-dan-noodles.jpg"},
+  {name:"Char Siu",cuisine:"Chinese",category:"Roast",tags:"bbq pork,cantonese,honey",image:"img/char-siu.jpg"},
+  {name:"Wonton Soup",cuisine:"Chinese",category:"Soup",tags:"dumplings,broth,shrimp",image:T+"1525876468.jpg"},
+  {name:"Kung Pao Chicken",cuisine:"Chinese",category:"Stir-fry",tags:"sichuan,peanuts,spicy,chicken",image:T+"1525872624.jpg"},
+
+  // ═══ Indian ═══
+  {name:"Biryani",cuisine:"Indian",category:"Rice",tags:"spiced,layered,saffron",image:T+"xrttsx1487339558.jpg"},
+  {name:"Palak Paneer",cuisine:"Indian",category:"Curry",tags:"spinach,vegetarian,cheese",image:T+"xxpqsy1511452222.jpg"},
+  {name:"Dal Tadka",cuisine:"Indian",category:"Curry",tags:"lentils,vegetarian,tempered",image:T+"wuxrtu1483564410.jpg"},
+  {name:"Butter Chicken",cuisine:"Indian",category:"Curry",tags:"creamy,tomato,tandoori",image:"img/butter-chicken.jpg"},
+
+  // ═══ Indonesian ═══
+  {name:"Nasi Goreng",cuisine:"Indonesian",category:"Fried Rice",tags:"fried rice,shrimp paste,egg",image:"img/nasi-goreng.jpg"},
+];
+
+// Cuisine → color for avatar backgrounds
+const CC={Thai:'#E8590C',Korean:'#D14E0A',Japanese:'#B84500',Vietnamese:'#059669',Chinese:'#C44408',Indian:'#D97706',Indonesian:'#9A3412',default:'#9A3412'};
+
+// ── Fuse.js setup for fuzzy local search ──
+const fuse=new Fuse(localDishes,{
+  keys:[
+    {name:'name',weight:0.6},
+    {name:'tags',weight:0.25},
+    {name:'cuisine',weight:0.15},
+  ],
+  threshold:0.4,
+  includeScore:true,
+  minMatchCharLength:2,
+});
+
+// Score a name against a query for uniform ranking
+function scoreMatch(name,query){
+  const n=name.toLowerCase(),qr=query.toLowerCase();
+  if(n===qr)return 100;
+  if(n.startsWith(qr))return 85;
+  if(qr.length>2&&n.includes(qr))return 70;
+  const words=qr.split(/\s+/);
+  if(words.length>1&&words.every(w=>n.includes(w)))return 55;
+  return 0;
+}
+
+// Search local DB with Fuse.js, return unified format
+function searchLocal(query){
+  if(!query.trim()||query.length<2)return[];
+  const exactResults=localDishes
+    .map(d=>{const sc=scoreMatch(d.name,query);return sc>0?{...d,_score:sc}:null})
+    .filter(Boolean);
+  // Then do fuzzy search via Fuse.js
+  const fuseResults=fuse.search(query).map(r=>({
+    ...r.item,
+    _score:Math.round(20+(1-r.score)*50), // Map Fuse 0-1 score to 20-70 range
+  }));
+  // Merge: exact matches take priority, then fuse fills in
+  const seen=new Set();
+  const merged=[];
+  for(const d of exactResults.sort((a,b)=>b._score-a._score)){
+    const k=d.name.toLowerCase();
+    if(!seen.has(k)){seen.add(k);merged.push(d)}
+  }
+  for(const d of fuseResults){
+    const k=d.name.toLowerCase();
+    if(!seen.has(k)){seen.add(k);merged.push(d)}
+  }
+  return merged.sort((a,b)=>b._score-a._score);
+}
+
+// Fetch from TheMealDB (free, no key, good images for famous dishes)
+async function fetchMealDB(query){
+  if(ac)ac.abort();
+  ac=new AbortController();
+  const r=await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`,{signal:ac.signal});
+  const d=await r.json();
+  return(d.meals||[]).map(m=>({
+    name:m.strMeal,
+    cuisine:m.strArea||'',
+    category:m.strCategory||'',
+    tags:m.strTags||'',
+    image:m.strMealThumb||null,
+    _api:true,
+  }));
+}
+
+// Merge local + API results, deduplicate, rank, cap at 7
+// When a local dish matches an API dish, steal the API image
+function mergeResults(local,api,query){
+  // Build a lookup of API images by lowercase name
+  const apiByName=new Map();
+  for(const d of api){
+    const k=d.name.toLowerCase();
+    if(!apiByName.has(k))apiByName.set(k,d);
+  }
+
+  const seen=new Set();
+  const all=[];
+  for(const d of local){
+    const k=d.name.toLowerCase();
+    if(!seen.has(k)){
+      seen.add(k);
+      const apiMatch=apiByName.get(k);
+      // Keep local image if we have one, only grab API image if local has none
+      all.push(apiMatch?{...d,image:d.image||apiMatch.image,time:apiMatch.time||d.time}:d);
+    }
+  }
+  for(const d of api){
+    const k=d.name.toLowerCase();
+    if(!seen.has(k)){
+      let sc=scoreMatch(d.name,query);
+      if(sc===0)sc=25;
+      seen.add(k);
+      all.push({...d,_score:sc});
+    }
+  }
+  all.sort((a,b)=>(b._score||0)-(a._score||0));
+  return all.slice(0,7);
+}
+
+// Highlight matching text
+function hl(text,query){
+  if(!query)return text;
+  const escaped=query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return text.replace(new RegExp(`(${escaped})`,'gi'),'<span class="hl">$1</span>');
+}
+
+// Render dropdown results — skip full DOM rebuild if only the query highlight changed
+let lastDishKey='';
+function render(items,query){
+  ai=-1;
+  if(!items.length&&query.trim()){
+    lastDishKey='';
+    dd.innerHTML='<div class="dd-empty">No dishes found<small>Try a different name</small></div>';
+    dd.classList.add('open');return;
+  }
+  if(!items.length){lastDishKey='';dd.classList.remove('open');return}
+
+  // If same dishes in same order, just update highlights — no image flash
+  const dishKey=items.map(d=>d.name).join('|');
+  if(dishKey===lastDishKey){
+    dd.querySelectorAll('.row-name').forEach((el,i)=>{
+      if(items[i])el.innerHTML=hl(items[i].name,query);
+    });
+    dd.classList.add('open');
+    q.setAttribute('aria-expanded','true');
+    return;
+  }
+  lastDishKey=dishKey;
+
+  dd.innerHTML=items.map((d,i)=>{
+    const safeName=d.name.replace(/'/g,"\\'");
+    const initial=d.name.charAt(0).toUpperCase();
+    const bgCol=CC[d.cuisine]||CC.default;
+    const hasImg=!!d.image;
+    const imgHtml=hasImg
+      ?`<img class="row-img" src="${d.image}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\'row-avatar\\' style=\\'background:${bgCol}\\'>${initial}</div>'">`
+      :`<div class="row-avatar" style="background:${bgCol}">${initial}</div>`;
+    const meta=[d.cuisine,d.category,d.time?`${d.time} min`:''].filter(Boolean);
+    const metaHtml=meta.map((m,j)=>(j>0?'<span class="sep"></span>':'')+`<span>${m}</span>`).join('');
+    return`<div class="row" role="option" data-i="${i}" data-n="${d.name}" onclick="pick('${safeName}')">
+      ${imgHtml}
+      <div class="row-body">
+        <div class="row-name">${hl(d.name,query)}</div>
+        <div class="row-meta">${metaHtml}</div>
       </div>
-    </div>
-  </section>
+      <svg class="row-arrow" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4.5 1l5 5-5 5"/></svg>
+    </div>`}).join('');
+  dd.classList.add('open');
+  q.setAttribute('aria-expanded','true');
+}
 
-  <!-- ════════════════════════════════════════════ -->
-  <!-- FEATURES                                     -->
-  <!-- ════════════════════════════════════════════ -->
-  <section id="features" class="py-16 px-4 md:px-8 max-w-7xl mx-auto">
-    <div class="reveal">
-      <p class="text-sm font-medium uppercase tracking-widest mb-2" style="color: #e68a00;">Why Hoely</p>
-      <h2 class="font-heading font-bold text-3xl md:text-4xl mb-10" style="color: #1a1207;">Made for home cooks</h2>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- Feature 1: Dietary Adaptations -->
-      <div class="glass card-hover p-7 reveal" style="transition-delay: 0.05s;">
-        <div class="icon-circle icon-circle-amber mb-5">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e68a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-        </div>
-        <h3 class="font-heading font-semibold text-xl mb-2" style="color: #1a1207;">Dietary Adaptations</h3>
-        <p class="text-sm leading-relaxed mb-4" style="color: #6b5e4f;">Vegan, gluten-free, nut allergy? Every recipe includes smart substitutions that keep the authentic Thai flavour.</p>
-        <div class="flex flex-wrap gap-2">
-          <span class="tag-pill" style="background: rgba(230, 138, 0, 0.1); color: #e68a00;">Vegan</span>
-          <span class="tag-pill" style="background: rgba(230, 138, 0, 0.1); color: #e68a00;">Gluten-free</span>
-          <span class="tag-pill" style="background: rgba(230, 138, 0, 0.1); color: #e68a00;">Nut-free</span>
-        </div>
-      </div>
-      <!-- Feature 2: Cross-Store Savings -->
-      <div class="glass card-hover p-7 reveal" style="transition-delay: 0.1s;">
-        <div class="icon-circle icon-circle-green mb-5">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0d9668" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        </div>
-        <h3 class="font-heading font-semibold text-xl mb-2" style="color: #1a1207;">Cross-Store Savings</h3>
-        <p class="text-sm leading-relaxed mb-4" style="color: #6b5e4f;">Every ingredient matched to the cheapest option across Meny and aFood. Cross-store optimization finds deals you'd miss.</p>
-        <div class="flex flex-wrap gap-2">
-          <span class="tag-pill" style="background: rgba(13, 150, 104, 0.1); color: #0d9668;">Avg. -18%</span>
-        </div>
-      </div>
-      <!-- Feature 3: Your Spice Level -->
-      <div class="glass card-hover p-7 reveal" style="transition-delay: 0.15s;">
-        <div class="icon-circle icon-circle-purple mb-5">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c4dba" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1.5 2.5 3 4 3 6.5a3 3 0 01-6 0C9 6 10.5 4.5 12 2z"/><path d="M5 14c0 4.4 3.6 8 7 8s7-3.6 7-8c0-2-1-3.5-2-5"/></svg>
-        </div>
-        <h3 class="font-heading font-semibold text-xl mb-2" style="color: #1a1207;">Your Spice Level</h3>
-        <p class="text-sm leading-relaxed mb-4" style="color: #6b5e4f;">Set your spice, sweetness, and umami preferences once. Every recipe auto-calibrates to your palate.</p>
-        <div class="flex flex-wrap gap-2">
-          <span class="tag-pill" style="background: rgba(124, 77, 186, 0.1); color: #7c4dba;">Spice 8</span>
-          <span class="tag-pill" style="background: rgba(124, 77, 186, 0.1); color: #7c4dba;">Sweet 3</span>
-          <span class="tag-pill" style="background: rgba(124, 77, 186, 0.1); color: #7c4dba;">Umami 9</span>
-        </div>
-      </div>
-    </div>
-  </section>
+function mark(){dd.querySelectorAll('.row').forEach((e,i)=>e.classList.toggle('active',i===ai))}
 
-  <!-- ════════════════════════════════════════════ -->
-  <!-- RECIPE SPOTLIGHT                            -->
-  <!-- ════════════════════════════════════════════ -->
-  <section class="py-16 px-4 md:px-8 max-w-7xl mx-auto">
-    <div class="glass-strong p-8 md:p-12 relative overflow-hidden reveal">
-      <!-- Decorative orbs -->
-      <div class="orb" style="width: 200px; height: 200px; background: rgba(255, 183, 77, 0.4); top: -40px; right: -40px;"></div>
-      <div class="orb" style="width: 150px; height: 150px; background: rgba(255, 138, 101, 0.3); bottom: -30px; left: 80px;"></div>
+function pick(n){
+  q.value=n;dd.classList.remove('open');q.setAttribute('aria-expanded','false');
+  const dish=localDishes.find(d=>d.name===n);
+  const p=new URLSearchParams({dish:n});
+  if(dish?.image)p.set('img',dish.image);
+  if(dish?.cuisine)p.set('cuisine',dish.cuisine);
+  window.location.href='/recipe?'+p;
+}
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
-        <!-- Left: Recipe info -->
-        <div>
-          <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style="background: rgba(230, 138, 0, 0.12); color: #e68a00;">Recipe Spotlight</span>
-          <h2 class="font-heading font-bold text-3xl md:text-4xl mb-3" style="color: #1a1207;">Massaman Curry</h2>
-          <p class="text-base mb-6" style="color: #6b5e4f;">A rich, mild Southern Thai curry with tender potatoes, roasted peanuts, and warm cinnamon-cardamom spice. The ultimate comfort food.</p>
+function go(t){q.value=t;q.focus();doSearch(t)}
 
-          <div class="flex flex-wrap gap-2 mb-6">
-            <span class="pill">40 min</span>
-            <span class="pill">4 servings</span>
-            <span class="pill" style="color: #0d9668;">467 kr</span>
-          </div>
+async function doSearch(s){
+  if(!s.trim()){dd.classList.remove('open');sp.classList.remove('on');return}
+  const local=searchLocal(s);
+  // Skip redundant local render — input handler already did it
+  sp.classList.add('on');
+  try{
+    const api=await fetchMealDB(s);
+    render(mergeResults(local,api,s),s);
+  }catch(e){
+    if(e.name!=='AbortError')console.error(e);
+  }finally{
+    sp.classList.remove('on');
+  }
+}
 
-          <h4 class="font-heading font-semibold text-sm mb-3" style="color: #1a1207;">Key Ingredients</h4>
-          <div class="grid grid-cols-2 gap-2 mb-6">
-            <div class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full" style="background: #e68a00;"></span>
-              <span class="text-sm" style="color: #6b5e4f;">Massaman curry paste</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full" style="background: #e68a00;"></span>
-              <span class="text-sm" style="color: #6b5e4f;">Coconut milk</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full" style="background: #e68a00;"></span>
-              <span class="text-sm" style="color: #6b5e4f;">Chicken thigh</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full" style="background: #e68a00;"></span>
-              <span class="text-sm" style="color: #6b5e4f;">Potatoes</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full" style="background: #e68a00;"></span>
-              <span class="text-sm" style="color: #6b5e4f;">Roasted peanuts</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full" style="background: #e68a00;"></span>
-              <span class="text-sm" style="color: #6b5e4f;">Tamarind paste</span>
-            </div>
-          </div>
+q.addEventListener('input',()=>{
+  clearTimeout(dt);
+  const s=q.value;
+  // Render local results immediately
+  const local=searchLocal(s);
+  if(local.length||!s.trim()){
+    render(s.trim()?local.slice(0,7):[],s);
+  }
+  // Debounce API call
+  dt=setTimeout(()=>doSearch(s),300);
+});
 
-          <a href="recipes.html" class="btn-amber text-sm px-6 py-3 inline-block no-underline">View Full Recipe</a>
-        </div>
+q.addEventListener('keydown',e=>{
+  const rows=dd.querySelectorAll('.row');
+  if(!rows.length)return;
+  if(e.key==='Tab'){e.preventDefault();const target=ai>=0?rows[ai]:rows[0];if(target){q.value=target.dataset.n;cl.classList.add('on');clearTimeout(dt);const s=q.value;const local=searchLocal(s);render(s.trim()?local.slice(0,7):[],s);dt=setTimeout(()=>doSearch(s),300)}}
+  else if(e.key==='ArrowDown'){e.preventDefault();ai=Math.min(ai+1,rows.length-1);mark();rows[ai]?.scrollIntoView({block:'nearest'})}
+  else if(e.key==='ArrowUp'){e.preventDefault();ai=Math.max(ai-1,0);mark();rows[ai]?.scrollIntoView({block:'nearest'})}
+  else if(e.key==='Enter'&&ai>=0){e.preventDefault();pick(rows[ai]?.dataset.n)}
+  else if(e.key==='Escape'){dd.classList.remove('open');q.blur()}
+});
 
-        <!-- Right: Massaman Curry photo -->
-        <div class="hidden lg:block">
-          <div class="spotlight-photo-wrap" style="height: 100%; min-height: 360px;">
-            <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&h=400&fit=crop" alt="Massaman Curry with tender potatoes and roasted peanuts" loading="lazy" style="border-radius: 24px;">
-            <div style="position: absolute; inset: 0; background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.15) 100%); border-radius: 24px;"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+document.addEventListener('click',e=>{if(!document.getElementById('sc').contains(e.target))dd.classList.remove('open')});
 
-  <!-- ════════════════════════════════════════════ -->
-  <!-- FOOTER                                      -->
-  <!-- ════════════════════════════════════════════ -->
-  <footer class="mt-8 mx-4 md:mx-8 mb-6">
-    <div class="glass-dark p-8 md:p-12 max-w-7xl mx-auto" style="color: #fff;">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-        <!-- Brand -->
-        <div class="md:col-span-2">
-          <h3 class="font-heading font-bold text-2xl mb-3" style="color: #fff;">Hoely</h3>
-          <p class="text-sm leading-relaxed" style="color: rgba(255,255,255,0.6);">Your Thai &amp; Asian kitchen companion. Real recipes, real deals, real savings from Norwegian stores.</p>
-        </div>
-        <!-- Links -->
-        <div>
-          <h4 class="font-heading font-semibold text-sm mb-3" style="color: rgba(255,255,255,0.8);">Explore</h4>
-          <ul class="space-y-2">
-            <li><a href="recipes.html" class="text-sm hover:underline" style="color: rgba(255,255,255,0.5);">All Recipes</a></li>
-            <li><a href="#deals" class="text-sm hover:underline" style="color: rgba(255,255,255,0.5);">Weekly Deals</a></li>
-            <li><a href="#meal-plan" class="text-sm hover:underline" style="color: rgba(255,255,255,0.5);">Meal Plans</a></li>
-            <li><a href="#features" class="text-sm hover:underline" style="color: rgba(255,255,255,0.5);">Features</a></li>
-          </ul>
-        </div>
-        <!-- Stores -->
-        <div>
-          <h4 class="font-heading font-semibold text-sm mb-3" style="color: rgba(255,255,255,0.8);">Stores</h4>
-          <ul class="space-y-2">
-            <li class="text-sm" style="color: rgba(255,255,255,0.5);">Meny (NorgesGruppen)</li>
-            <li class="text-sm" style="color: rgba(255,255,255,0.5);">aFood Market (Asian specialty)</li>
-          </ul>
-        </div>
-      </div>
-      <div class="border-t pt-6" style="border-color: rgba(255,255,255,0.1);">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-          <p class="text-xs" style="color: rgba(255,255,255,0.35);">&copy; 2026 Hoely. Made with love in Norway.</p>
-          <p class="text-xs" style="color: rgba(255,255,255,0.35);">Deals updated weekly from Meny &amp; aFood.</p>
-        </div>
-      </div>
-    </div>
-  </footer>
+// Clear button
+cl.addEventListener('click',()=>{q.value='';cl.classList.remove('on');dd.classList.remove('open');q.focus()});
+q.addEventListener('input',()=>{cl.classList.toggle('on',q.value.length>0)});
 
-  <!-- ════════════════════════════════════════════ -->
-  <!-- SCRIPTS                                     -->
-  <!-- ════════════════════════════════════════════ -->
-  <script>
-    // Scroll-reveal observer
-    (function() {
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (prefersReduced) {
-        document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
-        return;
-      }
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-    })();
+// Randomized hint suggestions
+function randomHints(){
+  const pool=localDishes.filter(d=>d.image).sort(()=>Math.random()-.5).slice(0,5);
+  document.getElementById('hints').innerHTML=pool.map((d,i)=>
+    (i>0?' &middot; ':'')+`<button class="hint" onclick="go('${d.name.replace(/'/g,"\\'")}')">${d.name}</button>`
+  ).join('');
+}
+randomHints();
 
-    // Mobile menu toggle
-    (function() {
-      const btn = document.getElementById('mobile-menu-btn');
-      const menu = document.getElementById('mobile-menu');
-      if (btn && menu) {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          menu.classList.toggle('open');
-        });
-        document.addEventListener('click', function(e) {
-          if (!menu.contains(e.target) && !btn.contains(e.target)) {
-            menu.classList.remove('open');
-          }
-        });
-        menu.querySelectorAll('a').forEach(function(link) {
-          link.addEventListener('click', function() {
-            menu.classList.remove('open');
-          });
-        });
-      }
-    })();
-  </script>
+setTimeout(()=>q.focus(),400);
+</script>
+
 </body>
 </html>

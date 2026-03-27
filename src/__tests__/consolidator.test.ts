@@ -59,10 +59,13 @@ function makeCart(items: ShoppingCartItem[]): ShoppingCart {
       tips: [],
     },
     items,
+    staples: [],
     unmatched: [],
     summary: {
       total_price: items.reduce((s, i) => s + (i.product_price || 0), 0),
+      staples_price: 0,
       item_count: items.length,
+      staples_count: 0,
       afood_items: items.filter((i) => i.source === "afood").length,
       meny_items: items.filter((i) => i.source === "meny").length,
       substitutions: 0,

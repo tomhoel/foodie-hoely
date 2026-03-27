@@ -22,7 +22,7 @@ For each ingredient→product pair, respond with:
 - "OK" if the product is what the recipe actually needs
 - "WRONG: reason | better search term" if the match is incorrect
 
-Be strict. Common mistakes to catch:
+Be strict but CAREFUL. Common mistakes to catch:
 - "eggs" matched to "egg salad" or "egg noodles" instead of plain eggs
 - "garlic" matched to "garlic sauce" instead of fresh garlic
 - "sugar" matched to "sugar snaps" (a vegetable) instead of actual sugar
@@ -31,6 +31,13 @@ Be strict. Common mistakes to catch:
 - "carrot" matched to "carrot cake" instead of fresh carrot
 - Pickled/preserved variants when fresh is needed
 - Bulk commercial sizes when household size is needed
+- "chili" matched to a PRODUCT flavored with chili (e.g. "Tunfisk Thai Chili" is tuna, not chili)
+
+CRITICAL RULES for your corrections:
+- If the current match is REASONABLE (e.g. fresh chili matched to fresh chili), say OK even if it's not perfect
+- When suggesting a "better search term", ONLY suggest the raw ingredient name in Norwegian — NEVER suggest a specific branded product or a product that is a completely different food category
+- A product that CONTAINS the ingredient as a flavor is NOT the same as the raw ingredient (e.g. "Thai Chili Tuna" is NOT "bird eye chili")
+- When in doubt, say OK — a slightly imperfect match is better than a wrong correction
 
 Respond in this exact JSON format, no markdown:
 [
