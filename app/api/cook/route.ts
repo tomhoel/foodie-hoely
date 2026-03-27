@@ -1,18 +1,12 @@
-import { cook } from '../src/recipes/generator';
-import { getSupabase } from '../src/db/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { cook } from '@/src/recipes/generator';
+import { getSupabase } from '@/src/db/client';
 
-export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
+export async function POST(request: NextRequest) {
   try {
-    const { dish, servings } = req.body || {};
+    const { dish, servings } = await request.json();
     if (!dish || typeof dish !== 'string') {
-      return res.status(400).json({ error: 'Missing "dish" in request body' });
+      return NextResponse.json({ error: 'Missing "dish" in request body' }, { status: 400 });
     }
 
     const cart = await cook(dish, { servings: servings || 4 });
@@ -35,7 +29,7 @@ export default async function handler(req: any, res: any) {
       for (const p of data || []) pdMap.set(p.id, p);
     }
 
-    const items = cart.items.map(item => {
+    const items = cart.items.map((item: any) => {
       const pid = item.match?.product?.product_id;
       const pd = pid ? pdMap.get(pid) : null;
       const altPd = item.alt?.product_id ? pdMap.get(item.alt.product_id) : null;
@@ -66,17 +60,15 @@ export default async function handler(req: any, res: any) {
       };
     });
 
-    res.json({
+    return NextResponse.json({
       recipe: cart.recipe,
       items,
-      staples: cart.staples.map(s => ({
-        ingredient: s.ingredient,
-      })),
+      staples: cart.staples.map((s: any) => ({ ingredient: s.ingredient })),
       unmatched: cart.unmatched,
       summary: cart.summary,
     });
   } catch (err: any) {
     console.error('cook() error:', err);
-    res.status(500).json({ error: err.message || 'Internal server error' });
+    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
   }
 }
