@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
-import { DM_Sans, Geist } from 'next/font/google';
+import { DM_Sans } from 'next/font/google';
+import { Providers } from '@/components/providers';
 import './globals.css';
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
 
@@ -14,9 +12,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html lang="en">
       <body className={`${dmSans.variable} font-sans antialiased`}>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
