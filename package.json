@@ -4,6 +4,9 @@
   "description": "AI-powered grocery product matching for Thai/Asian recipes",
   "main": "src/index.ts",
   "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
     "sync": "tsx src/index.ts sync all",
     "sync:afood": "tsx src/index.ts sync afood",
     "sync:meny": "tsx src/index.ts sync meny",
@@ -27,10 +30,17 @@
     "@google/genai": "^1.46.0",
     "@supabase/supabase-js": "^2.49.0",
     "dotenv": "^16.4.0",
-    "pg": "^8.20.0"
+    "next": "^16.2.1",
+    "pg": "^8.20.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^22.0.0",
+    "@types/react": "19.2.14",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.2",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^4.1.0"
