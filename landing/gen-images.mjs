@@ -7,7 +7,8 @@
 import { writeFile, readFile } from 'fs/promises';
 import { execSync } from 'child_process';
 
-const GEMINI_KEY = 'AIzaSyDx-2SC5BYTSk_0J3INjqLdlEG-uRTjTKQ';
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_KEY) { console.error('Error: GEMINI_API_KEY env var is required'); process.exit(1); }
 const MODEL = 'gemini-3.1-flash-image-preview';
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_KEY}`;
 const IMG_DIR = new URL('./img/', import.meta.url).pathname;
