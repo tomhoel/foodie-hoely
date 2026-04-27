@@ -5,10 +5,10 @@
  * parses names for brand/size/unit, and upserts into the DB.
  */
 
-import { config } from "../config";
-import { getSupabase, startSyncLog, completeSyncLog, failSyncLog } from "../db/client";
-import { fetchWithRetry, delayWithJitter } from "./retry-helpers";
-import type { ProductInsert } from "../db/types";
+import { config } from "../../config";
+import { getSupabase, startSyncLog, completeSyncLog, failSyncLog } from "../../db/client";
+import { fetchWithRetry, delayWithJitter } from "../retry-helpers";
+import type { ProductInsert } from "../../db/types";
 
 export interface SyncOptions {
   syncTimestamp?: string;

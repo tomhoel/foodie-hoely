@@ -29,8 +29,8 @@
 
 import { validateConfig } from "./config";
 import { getSupabase } from "./db/client";
-import { syncAfood } from "./sync/afood-sync";
-import { syncMeny } from "./sync/meny-sync";
+import { syncAfood } from "./ingestion/adapters/afood.adapter";
+import { syncMeny } from "./ingestion/adapters/meny-direct.adapter";
 import { enrichProducts } from "./enrichment/product-enricher";
 import { generateProductEmbeddings, generateIngredientEmbeddings } from "./enrichment/embedding-generator";
 import { seedIngredientMappings, linkIngredientsToProducts } from "./ingredients/mapping-seeder";
