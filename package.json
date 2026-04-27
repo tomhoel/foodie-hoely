@@ -10,6 +10,8 @@
     "sync": "tsx src/index.ts sync all",
     "sync:afood": "tsx src/index.ts sync afood",
     "sync:meny": "tsx src/index.ts sync meny",
+    "sync:kiwi": "tsx src/index.ts sync kiwi",
+    "sync:etilbudsavis": "tsx src/index.ts sync etilbudsavis",
     "enrich": "tsx src/index.ts enrich",
     "embed": "tsx src/index.ts embed",
     "seed": "tsx src/index.ts seed",
