@@ -12,6 +12,11 @@ export const config = {
     embeddingModel: "gemini-embedding-001",
     flashModel: "gemini-3.1-flash-lite-preview",
   },
+  aiGateway: {
+    apiKey: process.env.AI_GATEWAY_API_KEY || "",
+    plannerModel: "anthropic/claude-sonnet-4.6",
+    narratorModel: "anthropic/claude-haiku-4.5",
+  },
   meny: {
     storeId: process.env.MENY_STORE_ID || "7080001150488",
     apiBase: "https://platform-rest-prod.ngdata.no",
@@ -53,6 +58,7 @@ export function validateConfig(): void {
   if (!config.supabase.url) missing.push("SUPABASE_URL");
   if (!config.supabase.serviceKey) missing.push("SUPABASE_SERVICE_KEY");
   if (!config.google.apiKey) missing.push("GOOGLE_AI_API_KEY");
+  if (!config.aiGateway.apiKey) missing.push("AI_GATEWAY_API_KEY");
   if (missing.length > 0) {
     throw new Error(`Missing required env vars: ${missing.join(", ")}\nCopy .env.example to .env and fill in the values.`);
   }

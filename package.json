@@ -25,16 +25,20 @@
     "test:watch": "vitest",
     "seed:dealers": "tsx scripts/seed-dealers.ts",
     "recipe-import": "tsx src/index.ts recipe-import",
-    "cost-recipe": "tsx src/index.ts cost-recipe"
+    "cost-recipe": "tsx src/index.ts cost-recipe",
+    "plan-week": "tsx src/index.ts plan-week",
+    "seed:household": "tsx scripts/seed-household.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.71",
     "@google/genai": "^1.46.0",
     "@supabase/supabase-js": "^2.49.0",
     "@vercel/config": "^0.2.1",
+    "ai": "^6.0.168",
     "cheerio": "^1.2.0",
     "dotenv": "^16.4.0",
     "next": "^16.2.1",
