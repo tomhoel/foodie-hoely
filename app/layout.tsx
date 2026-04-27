@@ -1,23 +1,11 @@
-import type { Metadata } from 'next';
-import { DM_Sans } from 'next/font/google';
-import { Providers } from '@/components/providers';
-import './globals.css';
-
-const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
-
-export const metadata: Metadata = {
-  title: 'Hoely',
-  description: 'Thai & Asian recipes, real prices',
-};
+// Minimal root layout — required by Next.js App Router even for API-only apps.
+// No pages are rendered; this exists only to satisfy the framework.
+export const metadata = { title: 'Foodie API' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} font-sans antialiased`}>
-        <Providers>
-          {children}
-        </Providers>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
