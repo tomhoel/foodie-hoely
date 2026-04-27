@@ -10,6 +10,8 @@
     "sync": "tsx src/index.ts sync all",
     "sync:afood": "tsx src/index.ts sync afood",
     "sync:meny": "tsx src/index.ts sync meny",
+    "sync:kiwi": "tsx src/index.ts sync kiwi",
+    "sync:etilbudsavis": "tsx src/index.ts sync etilbudsavis",
     "enrich": "tsx src/index.ts enrich",
     "embed": "tsx src/index.ts embed",
     "seed": "tsx src/index.ts seed",
@@ -20,7 +22,8 @@
     "match": "tsx src/index.ts match",
     "recipe": "tsx src/index.ts recipe",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seed:dealers": "tsx scripts/seed-dealers.ts"
   },
   "keywords": [],
   "author": "",
@@ -34,7 +37,8 @@
     "next": "^16.2.1",
     "pg": "^8.20.0",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

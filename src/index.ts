@@ -32,6 +32,8 @@ import { getSupabase } from "./db/client";
 import { Orchestrator } from "./ingestion/orchestrator";
 import { MenyDirectAdapter } from "./ingestion/adapters/meny-direct.adapter";
 import { AFoodAdapter } from "./ingestion/adapters/afood.adapter";
+import { KassalappAdapter } from "./ingestion/adapters/kassalapp.adapter";
+import { EtilbudsavisAdapter } from "./ingestion/adapters/etilbudsavis.adapter";
 import { enrichProducts } from "./enrichment/product-enricher";
 import { generateProductEmbeddings, generateIngredientEmbeddings } from "./enrichment/embedding-generator";
 import { seedIngredientMappings, linkIngredientsToProducts } from "./ingredients/mapping-seeder";
@@ -45,6 +47,7 @@ import { startCoachingSession } from "./coaching/coach";
 import { optimizeCart, printOptimization } from "./optimization/price-optimizer";
 import { generateMealPlan } from "./planning/meal-planner";
 import type { DietaryConstraints } from "./recipes/dietary-adapter";
+import { listDealers } from "./db/repositories/offers.repo";
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
@@ -112,23 +115,69 @@ async function main() {
 
 // ─── Command handlers ────────────────────────────────────────────────────────
 
-function buildOrchestrator(): Orchestrator {
+async function buildOrchestrator(): Promise<Orchestrator> {
   const orch = new Orchestrator();
   orch.register(new MenyDirectAdapter());
   orch.register(new AFoodAdapter());
+
+  const kassalKey = process.env.KASSALAPP_API_KEY;
+  if (kassalKey) {
+    orch.register(new KassalappAdapter({ apiKey: kassalKey, chains: ['KIWI'] }));
+  } else {
+    console.warn('[orchestrator] KASSALAPP_API_KEY not set — KassalappAdapter not registered');
+  }
+
+  const dealerIdMap: Partial<Record<'MENY' | 'KIWI' | 'SPAR' | 'JOKER', string>> = {};
+  try {
+    const rows = await listDealers();
+    for (const row of rows) {
+      if (
+        row.etilbudsavis_dealer_id &&
+        (row.code === 'MENY' || row.code === 'KIWI' || row.code === 'SPAR' || row.code === 'JOKER')
+      ) {
+        dealerIdMap[row.code] = row.etilbudsavis_dealer_id;
+      }
+    }
+  } catch (e) {
+    console.warn(
+      `[orchestrator] could not load dealers from DB (${e instanceof Error ? e.message : String(e)}); falling back to env vars`
+    );
+    if (process.env.ETILBUDSAVIS_DEALER_MENY) dealerIdMap.MENY = process.env.ETILBUDSAVIS_DEALER_MENY;
+    if (process.env.ETILBUDSAVIS_DEALER_KIWI) dealerIdMap.KIWI = process.env.ETILBUDSAVIS_DEALER_KIWI;
+    if (process.env.ETILBUDSAVIS_DEALER_SPAR) dealerIdMap.SPAR = process.env.ETILBUDSAVIS_DEALER_SPAR;
+    if (process.env.ETILBUDSAVIS_DEALER_JOKER) dealerIdMap.JOKER = process.env.ETILBUDSAVIS_DEALER_JOKER;
+  }
+  if (Object.keys(dealerIdMap).length > 0) {
+    orch.register(new EtilbudsavisAdapter({ dealerIdMap }));
+  } else {
+    console.warn('[orchestrator] no etilbudsavis dealer IDs available; adapter not registered');
+  }
   return orch;
 }
 
-async function runSync(target: 'all' | 'meny' | 'afood') {
-  const orch = buildOrchestrator();
+async function runSync(target: 'all' | 'meny' | 'afood' | 'kiwi' | 'etilbudsavis') {
+  const orch = await buildOrchestrator();
   const adapters = orch.listAdapters().filter((a) => {
     if (target === 'all') return true;
     if (target === 'meny') return a.name === 'meny-direct';
     if (target === 'afood') return a.name === 'afood';
+    if (target === 'kiwi') return a.name === 'kassalapp';
+    if (target === 'etilbudsavis') return a.name === 'etilbudsavis';
     return false;
   });
   for (const a of adapters) {
     console.log(`[sync] ${a.name} starting...`);
+    if (a.name === 'etilbudsavis') {
+      for (const chain of a.chains) {
+        try {
+          const offers = await a.fetchOffers(chain);
+          console.log(`[sync] ${a.name} (${chain}) — ${offers.length} offers`);
+        } catch (e) {
+          console.error(`  ✗ ${chain}: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+      continue;
+    }
     const result = await a.syncProducts({});
     console.log(`[sync] ${a.name} done — upserted ${result.productsUpserted}, errors ${result.errors.length}`);
     for (const err of result.errors) console.error(`  ✗ ${err.message}`);
@@ -143,13 +192,19 @@ async function handleSync(source?: string) {
     case "meny":
       await runSync('meny');
       break;
+    case "kiwi":
+      await runSync('kiwi');
+      break;
+    case "etilbudsavis":
+      await runSync('etilbudsavis');
+      break;
     case "all":
     case undefined:
       console.log("=== Syncing all sources ===\n");
       await runSync('all');
       break;
     default:
-      console.error(`Unknown source: ${source}. Use: afood, meny, or all`);
+      console.error(`Unknown source: ${source}. Use: afood, meny, kiwi, etilbudsavis, or all`);
       process.exit(1);
   }
 }

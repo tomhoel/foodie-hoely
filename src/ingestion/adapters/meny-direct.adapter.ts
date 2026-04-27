@@ -206,9 +206,36 @@ export class MenyDirectAdapter implements IngestionAdapter {
     return { adapter: this.name, started, finished: new Date(), productsUpserted, errors };
   }
 
-  async refreshPrices(_eans: string[]): Promise<PriceUpdate[]> {
-    // Phase-0 stub. Real implementation lands in Plan B.
-    return [];
+  async refreshPrices(eans: string[]): Promise<PriceUpdate[]> {
+    const updates: PriceUpdate[] = [];
+    for (const ean of eans) {
+      try {
+        const params = new URLSearchParams({
+          search: ean,
+          page_size: '1',
+          store_id: config.meny.storeId,
+          full_response: 'true',
+        });
+        const url = `${config.meny.apiBase}/api/episearch/${config.meny.chainId}/products?${params}`;
+        const res = await fetchWithRetry(url, { headers: HEADERS });
+        if (!res.ok) continue;
+        const body = (await res.json()) as { hits?: Array<{ contentData?: { _source?: { ean?: string; pricePerUnit?: number; comparePricePerUnit?: number; isOffer?: boolean } } }> };
+        const source = body.hits?.[0]?.contentData?._source;
+        if (!source || typeof source.pricePerUnit !== 'number') continue;
+        if (source.ean && source.ean !== ean) continue;
+        updates.push({
+          ean,
+          price: source.pricePerUnit,
+          currency: 'NOK',
+          observedAt: new Date(),
+          isOffer: source.isOffer ?? false,
+          comparePrice: source.comparePricePerUnit,
+        });
+      } catch (e) {
+        console.error(`[meny-direct] refreshPrices failed for ean ${ean}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+    return updates;
   }
 
   async fetchOffers(_dealerCode: ChainCode): Promise<OfferRecord[]> {
@@ -216,8 +243,20 @@ export class MenyDirectAdapter implements IngestionAdapter {
   }
 
   async healthCheck(): Promise<HealthStatus> {
-    // Phase-0 stub. Real check lands in Plan B.
-    return { ok: true, lastSuccess: new Date() };
+    try {
+      const params = new URLSearchParams({
+        search: 'melk',
+        page_size: '1',
+        store_id: config.meny.storeId,
+        full_response: 'true',
+      });
+      const url = `${config.meny.apiBase}/api/episearch/${config.meny.chainId}/products?${params}`;
+      const res = await fetchWithRetry(url, { headers: HEADERS });
+      if (!res.ok) return { ok: false, lastSuccess: new Date(0), error: `HTTP ${res.status}` };
+      return { ok: true, lastSuccess: new Date() };
+    } catch (e) {
+      return { ok: false, lastSuccess: new Date(0), error: e instanceof Error ? e.message : String(e) };
+    }
   }
 }
 

@@ -1,0 +1,24 @@
+[
+  {
+    "id": "dJdjaEQTYe4c7q6aRhilD",
+    "heading": "Kjottdeig",
+    "description": "Storfe/Svin/Kylling, Folkets/PRIOR, 400 g.",
+    "pricing": { "price": 49.9, "pre_price": 64.9, "currency": "NOK" },
+    "images": { "thumb": "https://example.com/a.jpg", "view": "https://example.com/b.jpg" },
+    "run_from": "2026-04-27T00:00:00Z",
+    "run_till": "2026-05-03T23:59:59Z",
+    "dealer": { "name": "Joker", "id": "b3e8Fm" },
+    "dealer_id": "b3e8Fm",
+    "catalog_id": "cat_001"
+  },
+  {
+    "id": "abc123",
+    "heading": "Tine Yoghurt",
+    "description": "Naturell, 4 pk",
+    "pricing": { "price": 25.0, "pre_price": null, "currency": "NOK" },
+    "run_from": "2026-04-27T00:00:00Z",
+    "run_till": "2026-05-03T23:59:59Z",
+    "dealer_id": "b3e8Fm",
+    "catalog_id": "cat_001"
+  }
+]
