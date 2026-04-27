@@ -53,6 +53,8 @@ import { createRecipe, getRecipe } from './db/repositories/recipes.repo';
 import { resolveIngredients } from './optimizer/ingredient-resolver';
 import { computePlanCost } from './optimizer/optimizer';
 import type { ChainCode } from './ingestion/adapter.interface';
+import { planWeek } from './planner';
+import { getOrCreateDefaultHousehold } from './db/repositories/households.repo';
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
@@ -116,6 +118,9 @@ async function main() {
       break;
     case "cost-recipe":
       await handleCostRecipe(process.argv.slice(3));
+      break;
+    case "plan-week":
+      await handlePlanWeek(args);
       break;
     default:
       console.error(`Unknown command: ${command}`);
@@ -627,6 +632,28 @@ function parseFlagStr(args: string[], name: string, fallback: string): string {
   const idx = args.indexOf(name);
   if (idx === -1 || !args[idx + 1]) return fallback;
   return args[idx + 1];
+}
+
+async function handlePlanWeek(args: string[]) {
+  const recipeCount = parseFlagNum(args, '--recipes', 5);
+  const weeklyBudgetNok = parseFlagNum(args, '--budget', 1500);
+  const chainsRaw = parseFlagStr(args, '--chains', 'MENY,KIWI,AFOOD');
+  const allowedChains = chainsRaw.split(',').map((c) => c.trim().toUpperCase()) as ChainCode[];
+  const weekStartFlag = parseFlagStr(args, '--week-start', '');
+  const weekStart = weekStartFlag || nextMondayIsoDate();
+
+  const hh = await getOrCreateDefaultHousehold();
+  console.log(`[plan-week] household=${hh.id} weekStart=${weekStart} recipes=${recipeCount} budget=${weeklyBudgetNok} chains=${allowedChains.join(',')}`);
+  const result = await planWeek({ householdId: hh.id, weekStart, recipeCount, weeklyBudgetNok, allowedChains });
+  console.log(JSON.stringify(result, null, 2));
+}
+
+function nextMondayIsoDate(): string {
+  const d = new Date();
+  const day = d.getUTCDay();           // 0=Sun .. 6=Sat
+  const offset = ((1 - day) + 7) % 7;  // days until next Monday (0 if today *is* Monday)
+  const target = new Date(d.getTime() + (offset || 7) * 86_400_000);
+  return target.toISOString().slice(0, 10);
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
