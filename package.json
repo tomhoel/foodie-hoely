@@ -22,7 +22,8 @@
     "match": "tsx src/index.ts match",
     "recipe": "tsx src/index.ts recipe",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seed:dealers": "tsx scripts/seed-dealers.ts"
   },
   "keywords": [],
   "author": "",
