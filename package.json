@@ -29,6 +29,7 @@
   "dependencies": {
     "@google/genai": "^1.46.0",
     "@supabase/supabase-js": "^2.49.0",
+    "@vercel/config": "^0.2.1",
     "dotenv": "^16.4.0",
     "next": "^16.2.1",
     "pg": "^8.20.0",
