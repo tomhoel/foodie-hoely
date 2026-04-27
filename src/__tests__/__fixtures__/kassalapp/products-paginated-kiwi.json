@@ -1,0 +1,30 @@
+{
+  "data": [
+    {
+      "id": 1001,
+      "name": "Tine Yoghurt Naturell 4 pk",
+      "brand": "Tine",
+      "vendor": "Tine SA",
+      "ean": "7038010029721",
+      "url": "https://kiwi.no/produkter/tine-yoghurt-naturell-4pk",
+      "image": "https://images.kassal.app/yoghurt.jpg",
+      "current_price": 25.0,
+      "current_unit_price": 6.25,
+      "weight": 400,
+      "weight_unit": "g",
+      "store": { "name": "Kiwi", "code": "KIWI" },
+      "updated_at": "2026-04-27T07:12:00Z"
+    },
+    {
+      "id": 1002,
+      "name": "Q Skummet Melk 1 L",
+      "brand": "Q",
+      "ean": "7038010012345",
+      "current_price": 18.5,
+      "store": { "name": "Kiwi", "code": "KIWI" },
+      "updated_at": "2026-04-27T07:12:00Z"
+    }
+  ],
+  "links": { "first": "https://kassal.app/api/v1/products?page=1", "last": null, "prev": null, "next": "https://kassal.app/api/v1/products?page=2" },
+  "meta": { "current_page": 1, "per_page": 100 }
+}
