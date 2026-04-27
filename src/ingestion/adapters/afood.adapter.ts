@@ -9,6 +9,16 @@ import { config } from "../../config";
 import { getSupabase, startSyncLog, completeSyncLog, failSyncLog } from "../../db/client";
 import { fetchWithRetry, delayWithJitter } from "../retry-helpers";
 import type { ProductInsert } from "../../db/types";
+import type {
+  AdapterCapability,
+  ChainCode,
+  HealthStatus,
+  IngestionAdapter,
+  OfferRecord,
+  PriceUpdate,
+  SyncOptions as AdapterSyncOptions,
+  SyncResult,
+} from '../adapter.interface';
 
 export interface SyncOptions {
   syncTimestamp?: string;
@@ -372,5 +382,40 @@ async function upsertBatch(db: ReturnType<typeof getSupabase>, batch: ProductIns
       { onConflict: "source,external_id" }
     );
   if (error) throw new Error(`Upsert failed: ${error.message}`);
+}
+
+// ─── IngestionAdapter implementation ─────────────────────────────────────────
+export class AFoodAdapter implements IngestionAdapter {
+  readonly name = 'afood';
+  readonly capabilities: AdapterCapability[] = ['products', 'prices'];
+  readonly chains: ChainCode[] = ['AFOOD'];
+
+  async syncProducts(opts: AdapterSyncOptions): Promise<SyncResult> {
+    const started = new Date();
+    let productsUpserted = 0;
+    const errors: SyncResult['errors'] = [];
+    try {
+      // Delegate to the existing syncAfood() exported above.
+      const result = await syncAfood({
+        syncTimestamp: opts.since?.toISOString(),
+      });
+      productsUpserted = result.synced;
+    } catch (e) {
+      errors.push({ message: e instanceof Error ? e.message : String(e) });
+    }
+    return { adapter: this.name, started, finished: new Date(), productsUpserted, errors };
+  }
+
+  async refreshPrices(_eans: string[]): Promise<PriceUpdate[]> {
+    return [];
+  }
+
+  async fetchOffers(_dealerCode: ChainCode): Promise<OfferRecord[]> {
+    throw new Error('AFoodAdapter does not provide offers; use EtilbudsavisAdapter (spec §3)');
+  }
+
+  async healthCheck(): Promise<HealthStatus> {
+    return { ok: true, lastSuccess: new Date() };
+  }
 }
 
