@@ -47,6 +47,7 @@ import { startCoachingSession } from "./coaching/coach";
 import { optimizeCart, printOptimization } from "./optimization/price-optimizer";
 import { generateMealPlan } from "./planning/meal-planner";
 import type { DietaryConstraints } from "./recipes/dietary-adapter";
+import { listDealers } from "./db/repositories/offers.repo";
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
@@ -114,7 +115,7 @@ async function main() {
 
 // ─── Command handlers ────────────────────────────────────────────────────────
 
-function buildOrchestrator(): Orchestrator {
+async function buildOrchestrator(): Promise<Orchestrator> {
   const orch = new Orchestrator();
   orch.register(new MenyDirectAdapter());
   orch.register(new AFoodAdapter());
@@ -127,20 +128,35 @@ function buildOrchestrator(): Orchestrator {
   }
 
   const dealerIdMap: Partial<Record<'MENY' | 'KIWI' | 'SPAR' | 'JOKER', string>> = {};
-  if (process.env.ETILBUDSAVIS_DEALER_MENY) dealerIdMap.MENY = process.env.ETILBUDSAVIS_DEALER_MENY;
-  if (process.env.ETILBUDSAVIS_DEALER_KIWI) dealerIdMap.KIWI = process.env.ETILBUDSAVIS_DEALER_KIWI;
-  if (process.env.ETILBUDSAVIS_DEALER_SPAR) dealerIdMap.SPAR = process.env.ETILBUDSAVIS_DEALER_SPAR;
-  if (process.env.ETILBUDSAVIS_DEALER_JOKER) dealerIdMap.JOKER = process.env.ETILBUDSAVIS_DEALER_JOKER;
+  try {
+    const rows = await listDealers();
+    for (const row of rows) {
+      if (
+        row.etilbudsavis_dealer_id &&
+        (row.code === 'MENY' || row.code === 'KIWI' || row.code === 'SPAR' || row.code === 'JOKER')
+      ) {
+        dealerIdMap[row.code] = row.etilbudsavis_dealer_id;
+      }
+    }
+  } catch (e) {
+    console.warn(
+      `[orchestrator] could not load dealers from DB (${e instanceof Error ? e.message : String(e)}); falling back to env vars`
+    );
+    if (process.env.ETILBUDSAVIS_DEALER_MENY) dealerIdMap.MENY = process.env.ETILBUDSAVIS_DEALER_MENY;
+    if (process.env.ETILBUDSAVIS_DEALER_KIWI) dealerIdMap.KIWI = process.env.ETILBUDSAVIS_DEALER_KIWI;
+    if (process.env.ETILBUDSAVIS_DEALER_SPAR) dealerIdMap.SPAR = process.env.ETILBUDSAVIS_DEALER_SPAR;
+    if (process.env.ETILBUDSAVIS_DEALER_JOKER) dealerIdMap.JOKER = process.env.ETILBUDSAVIS_DEALER_JOKER;
+  }
   if (Object.keys(dealerIdMap).length > 0) {
     orch.register(new EtilbudsavisAdapter({ dealerIdMap }));
   } else {
-    console.warn('[orchestrator] no ETILBUDSAVIS_DEALER_* env vars set — EtilbudsavisAdapter not registered');
+    console.warn('[orchestrator] no etilbudsavis dealer IDs available; adapter not registered');
   }
   return orch;
 }
 
 async function runSync(target: 'all' | 'meny' | 'afood' | 'kiwi' | 'etilbudsavis') {
-  const orch = buildOrchestrator();
+  const orch = await buildOrchestrator();
   const adapters = orch.listAdapters().filter((a) => {
     if (target === 'all') return true;
     if (target === 'meny') return a.name === 'meny-direct';
