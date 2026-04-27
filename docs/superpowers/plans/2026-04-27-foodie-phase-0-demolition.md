@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Remove the Next.js website code, restructure `src/sync/` into the new adapter pattern, add the planning-core schema migration, and migrate `vercel.json` → `vercel.ts`. End state: clean repo where `pnpm test` and `pnpm build` both pass, and the system is ready for Phase 1 adapter work.
+**Goal:** Remove the Next.js website code, restructure `src/sync/` into the new adapter pattern, add the planning-core schema migration, and migrate `vercel.json` → `vercel.ts`. End state: clean repo where `npm test` and `npm build` both pass, and the system is ready for Phase 1 adapter work.
 
 **Architecture:** Surgical demolition of the website (`app/page.tsx`, `app/recipe/`, `app/favorites/`, `components/`, `hooks/`, `public/`, frontend `lib/*`). Keep Next.js App Router for the API surface. Move `src/sync/*.ts` to `src/ingestion/adapters/*.adapter.ts`. Add `IngestionAdapter` interface + orchestrator registry. Apply migration `005_planning_core.sql` with all new tables from spec §6.2 (RLS enabled but permissive — tightened in Phase 2). Replace `vercel.json` with typed `vercel.ts`.
 
@@ -113,13 +113,13 @@ Expected: `phase-0/demolition`
 - [ ] **Step 5: Verify baseline test suite runs (record what's passing now)**
 
 ```bash
-pnpm install
-pnpm test 2>&1 | tail -20
+npm install
+npm test 2>&1 | tail -20
 ```
 
 Expected: vitest summary showing N tests, X passed, Y failed. Record the numbers — we need them green at the end of this plan.
 
-If vitest is not installed, expected output mentions missing dep — install it: `pnpm add -D vitest`
+If vitest is not installed, expected output mentions missing dep — install it: `npm add -D vitest`
 
 - [ ] **Step 6: Commit the baseline (no actual changes — just for the audit trail)**
 
@@ -212,7 +212,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - [ ] **Step 2: Type-check the layout**
 
 ```bash
-pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | head -20
+npm exec tsc --noEmit -p tsconfig.json 2>&1 | head -20
 ```
 
 Expected: no errors related to `app/layout.tsx`. If `globals.css` is still referenced anywhere in `next.config.ts` or imports, fix.
@@ -366,7 +366,7 @@ export default nextConfig;
 - [ ] **Step 2: Verify Next.js config loads cleanly**
 
 ```bash
-pnpm exec next info 2>&1 | head -10
+npm exec next info 2>&1 | head -10
 ```
 
 Expected: prints Next.js version, OS info, no parse errors.
@@ -474,7 +474,7 @@ Note: Removed `--turbopack` from `dev` because it occasionally has compat issues
 
 ```bash
 rm -rf node_modules pnpm-lock.yaml package-lock.json
-pnpm install
+npm install
 ```
 
 Expected: install completes, fewer packages than before. Note the count.
@@ -482,7 +482,7 @@ Expected: install completes, fewer packages than before. Note the count.
 - [ ] **Step 4: Verify type-check still passes**
 
 ```bash
-pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
+npm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
 ```
 
 Expected: no errors. If errors mention missing modules from removed packages, those files were missed in the demolition tasks — search for the import and remove it.
@@ -490,7 +490,7 @@ Expected: no errors. If errors mention missing modules from removed packages, th
 - [ ] **Step 5: Verify tests still pass**
 
 ```bash
-pnpm test 2>&1 | tail -10
+npm test 2>&1 | tail -10
 ```
 
 Expected: same pass/fail counts as Task 1 baseline. If any new failures, they're caused by removed deps — fix.
@@ -512,7 +512,7 @@ git commit -m "chore(phase-0): remove frontend-only dependencies"
 - [ ] **Step 1: Run a full Next build**
 
 ```bash
-pnpm build 2>&1 | tail -30
+npm build 2>&1 | tail -30
 ```
 
 Expected: build completes, output mentions `.next/` directory, **only the `/api/health` route is listed** under "Route (app)". No page routes.
@@ -622,7 +622,7 @@ grep -rl "sync/sync-orchestrator" --include="*.ts" src/ | xargs -r sed -i 's|syn
 - [ ] **Step 5: Type-check**
 
 ```bash
-pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -20
+npm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -20
 ```
 
 Expected: no errors. If errors mention missing modules from `src/sync/...`, find the un-replaced reference and fix it.
@@ -630,7 +630,7 @@ Expected: no errors. If errors mention missing modules from `src/sync/...`, find
 - [ ] **Step 6: Tests still pass**
 
 ```bash
-pnpm test 2>&1 | tail -10
+npm test 2>&1 | tail -10
 ```
 
 Expected: same pass/fail counts as baseline.
@@ -698,7 +698,7 @@ describe('IngestionAdapter interface', () => {
 - [ ] **Step 2: Run the test to verify it fails (interface doesn't exist yet)**
 
 ```bash
-pnpm test src/__tests__/adapter-interface.test.ts 2>&1 | tail -10
+npm test src/__tests__/adapter-interface.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL with "Cannot find module '../ingestion/adapter.interface'" or similar.
@@ -782,7 +782,7 @@ export interface IngestionAdapter {
 - [ ] **Step 4: Run the test to verify it passes**
 
 ```bash
-pnpm test src/__tests__/adapter-interface.test.ts 2>&1 | tail -10
+npm test src/__tests__/adapter-interface.test.ts 2>&1 | tail -10
 ```
 
 Expected: PASS, 3 tests.
@@ -790,7 +790,7 @@ Expected: PASS, 3 tests.
 - [ ] **Step 5: Type-check the whole project**
 
 ```bash
-pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
+npm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
 ```
 
 Expected: no errors.
@@ -880,7 +880,7 @@ describe('Orchestrator', () => {
 - [ ] **Step 2: Run the test to verify it fails**
 
 ```bash
-pnpm test src/__tests__/orchestrator.test.ts 2>&1 | tail -10
+npm test src/__tests__/orchestrator.test.ts 2>&1 | tail -10
 ```
 
 Expected: FAIL with "Cannot find module '../ingestion/orchestrator'".
@@ -949,7 +949,7 @@ export class Orchestrator {
 - [ ] **Step 4: Run the test to verify it passes**
 
 ```bash
-pnpm test src/__tests__/orchestrator.test.ts 2>&1 | tail -10
+npm test src/__tests__/orchestrator.test.ts 2>&1 | tail -10
 ```
 
 Expected: PASS, 5 tests.
@@ -957,7 +957,7 @@ Expected: PASS, 5 tests.
 - [ ] **Step 5: Type-check**
 
 ```bash
-pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
+npm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
 ```
 
 Expected: no errors.
@@ -1048,7 +1048,7 @@ export class MenyDirectAdapter implements IngestionAdapter {
 - [ ] **Step 3: Type-check the file**
 
 ```bash
-pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | grep -E "meny|adapter" | head -10
+npm exec tsc --noEmit -p tsconfig.json 2>&1 | grep -E "meny|adapter" | head -10
 ```
 
 Expected: no errors related to `meny-direct.adapter.ts`. The most likely issue is that the legacy `SyncOptions` interface inside this file conflicts with the imported `AdapterSyncOptions` — the alias in Step 2 should prevent that, but if a conflict appears, rename the legacy interface inside the file (e.g., `LegacyMenySyncOptions`) and update its single call site `syncMeny(opts: LegacyMenySyncOptions = {})`.
@@ -1056,7 +1056,7 @@ Expected: no errors related to `meny-direct.adapter.ts`. The most likely issue i
 - [ ] **Step 4: Tests still pass**
 
 ```bash
-pnpm test 2>&1 | tail -10
+npm test 2>&1 | tail -10
 ```
 
 Expected: same pass/fail counts.
@@ -1140,8 +1140,8 @@ export class AFoodAdapter implements IngestionAdapter {
 - [ ] **Step 3: Type-check + tests**
 
 ```bash
-pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
-pnpm test 2>&1 | tail -10
+npm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
+npm test 2>&1 | tail -10
 ```
 
 Expected: no new errors, tests still pass. Same SyncOptions-alias caveat as Task 14 Step 3 if a name conflict surfaces.
@@ -1209,7 +1209,7 @@ async function runSync(target: 'all' | 'meny' | 'afood') {
 - [ ] **Step 3: Type-check**
 
 ```bash
-pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
+npm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
 ```
 
 Expected: no errors.
@@ -1217,7 +1217,7 @@ Expected: no errors.
 - [ ] **Step 4: Smoke-test the CLI (without hitting network — just verify it loads)**
 
 ```bash
-pnpm exec tsx src/index.ts --help 2>&1 | head -20 || pnpm exec tsx src/index.ts 2>&1 | head -20
+npm exec tsx src/index.ts --help 2>&1 | head -20 || npm exec tsx src/index.ts 2>&1 | head -20
 ```
 
 Expected: prints the help banner (the comment block at the top of src/index.ts) or runs without import errors.
@@ -1225,7 +1225,7 @@ Expected: prints the help banner (the comment block at the top of src/index.ts) 
 - [ ] **Step 5: Tests still pass**
 
 ```bash
-pnpm test 2>&1 | tail -10
+npm test 2>&1 | tail -10
 ```
 
 Expected: same pass/fail counts.
@@ -1649,13 +1649,13 @@ Per spec §4 (now.json removed Mar 31 2026, vercel.ts is the recommended config)
 - [ ] **Step 1: Verify `@vercel/config` package availability**
 
 ```bash
-pnpm info @vercel/config 2>&1 | head -5
+npm info @vercel/config 2>&1 | head -5
 ```
 
 Expected: shows package info. If not installed, install:
 
 ```bash
-pnpm add @vercel/config
+npm add @vercel/config
 ```
 
 - [ ] **Step 2: Create `vercel.ts`**
@@ -1694,10 +1694,10 @@ git rm vercel.json
 - [ ] **Step 4: Type-check**
 
 ```bash
-pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
+npm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
 ```
 
-Expected: no errors. If `@vercel/config` types aren't found, ensure `pnpm add @vercel/config` ran in Step 1.
+Expected: no errors. If `@vercel/config` types aren't found, ensure `npm add @vercel/config` ran in Step 1.
 
 - [ ] **Step 5: Commit**
 
@@ -1778,7 +1778,7 @@ git commit -m "chore(phase-0): refresh .env.example with Phase 1 vars"
 - [ ] **Step 1: Type-check the whole project**
 
 ```bash
-pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
+npm exec tsc --noEmit -p tsconfig.json 2>&1 | tail -10
 ```
 
 Expected: no errors.
@@ -1786,7 +1786,7 @@ Expected: no errors.
 - [ ] **Step 2: Run all tests**
 
 ```bash
-pnpm test 2>&1 | tail -10
+npm test 2>&1 | tail -10
 ```
 
 Expected: same pass count as Task 1 baseline (no regressions). New tests added in Tasks 12 + 13 should also pass — total count is `baseline + 8` (3 from adapter-interface test + 5 from orchestrator test).
@@ -1794,7 +1794,7 @@ Expected: same pass count as Task 1 baseline (no regressions). New tests added i
 - [ ] **Step 3: Run the build**
 
 ```bash
-pnpm build 2>&1 | tail -15
+npm build 2>&1 | tail -15
 ```
 
 Expected: build succeeds. Output should list only `/api/health` under "Route (app)". No page routes.
@@ -1802,7 +1802,7 @@ Expected: build succeeds. Output should list only `/api/health` under "Route (ap
 - [ ] **Step 4: Smoke-test dev server starts**
 
 ```bash
-pnpm dev &
+npm dev &
 DEV_PID=$!
 sleep 5
 curl -s http://localhost:3000/api/health
@@ -1870,9 +1870,9 @@ gh pr create --title "Phase 0: demolition & ingestion restructure" --body "$(cat
 
 ## Test plan
 
-- [x] `pnpm test` — passes including new adapter-interface + orchestrator tests
-- [x] `pnpm build` — succeeds, only `/api/health` route remains
-- [x] `pnpm dev` + curl `/api/health` returns 200
+- [x] `npm test` — passes including new adapter-interface + orchestrator tests
+- [x] `npm build` — succeeds, only `/api/health` route remains
+- [x] `npm dev` + curl `/api/health` returns 200
 - [x] Sync CLI loads without import errors
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
@@ -1895,8 +1895,8 @@ If not using PRs, skip.
 - [ ] `src/ingestion/adapters/afood.adapter.ts` exports `AFoodAdapter` class
 - [ ] `supabase/migrations/005_planning_core.sql` exists and is syntactically valid
 - [ ] `vercel.ts` exists, `vercel.json` does not
-- [ ] `pnpm test` passes
-- [ ] `pnpm build` passes
+- [ ] `npm test` passes
+- [ ] `npm build` passes
 - [ ] `git tag phase-0-complete` exists
 
 ---
