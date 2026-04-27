@@ -23,7 +23,9 @@
     "recipe": "tsx src/index.ts recipe",
     "test": "vitest run",
     "test:watch": "vitest",
-    "seed:dealers": "tsx scripts/seed-dealers.ts"
+    "seed:dealers": "tsx scripts/seed-dealers.ts",
+    "recipe-import": "tsx src/index.ts recipe-import",
+    "cost-recipe": "tsx src/index.ts cost-recipe"
   },
   "keywords": [],
   "author": "",
