@@ -29,8 +29,9 @@
 
 import { validateConfig } from "./config";
 import { getSupabase } from "./db/client";
-import { syncAfood } from "./ingestion/adapters/afood.adapter";
-import { syncMeny } from "./ingestion/adapters/meny-direct.adapter";
+import { Orchestrator } from "./ingestion/orchestrator";
+import { MenyDirectAdapter } from "./ingestion/adapters/meny-direct.adapter";
+import { AFoodAdapter } from "./ingestion/adapters/afood.adapter";
 import { enrichProducts } from "./enrichment/product-enricher";
 import { generateProductEmbeddings, generateIngredientEmbeddings } from "./enrichment/embedding-generator";
 import { seedIngredientMappings, linkIngredientsToProducts } from "./ingredients/mapping-seeder";
@@ -111,20 +112,41 @@ async function main() {
 
 // ─── Command handlers ────────────────────────────────────────────────────────
 
+function buildOrchestrator(): Orchestrator {
+  const orch = new Orchestrator();
+  orch.register(new MenyDirectAdapter());
+  orch.register(new AFoodAdapter());
+  return orch;
+}
+
+async function runSync(target: 'all' | 'meny' | 'afood') {
+  const orch = buildOrchestrator();
+  const adapters = orch.listAdapters().filter((a) => {
+    if (target === 'all') return true;
+    if (target === 'meny') return a.name === 'meny-direct';
+    if (target === 'afood') return a.name === 'afood';
+    return false;
+  });
+  for (const a of adapters) {
+    console.log(`[sync] ${a.name} starting...`);
+    const result = await a.syncProducts({});
+    console.log(`[sync] ${a.name} done — upserted ${result.productsUpserted}, errors ${result.errors.length}`);
+    for (const err of result.errors) console.error(`  ✗ ${err.message}`);
+  }
+}
+
 async function handleSync(source?: string) {
   switch (source) {
     case "afood":
-      await syncAfood();
+      await runSync('afood');
       break;
     case "meny":
-      await syncMeny();
+      await runSync('meny');
       break;
     case "all":
     case undefined:
       console.log("=== Syncing all sources ===\n");
-      await syncAfood();
-      console.log("");
-      await syncMeny();
+      await runSync('all');
       break;
     default:
       console.error(`Unknown source: ${source}. Use: afood, meny, or all`);
@@ -408,10 +430,10 @@ async function handlePipeline() {
   console.log("=== FULL PIPELINE ===\n");
 
   console.log("Step 1/6: Sync aFood products...");
-  await syncAfood();
+  await runSync('afood');
 
   console.log("\nStep 2/6: Sync Meny products...");
-  await syncMeny();
+  await runSync('meny');
 
   console.log("\nStep 3/6: AI-enrich products (Flash Lite)...");
   await enrichProducts();
