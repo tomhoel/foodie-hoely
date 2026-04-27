@@ -48,6 +48,11 @@ import { optimizeCart, printOptimization } from "./optimization/price-optimizer"
 import { generateMealPlan } from "./planning/meal-planner";
 import type { DietaryConstraints } from "./recipes/dietary-adapter";
 import { listDealers } from "./db/repositories/offers.repo";
+import { importRecipeFromUrl } from './recipes/import/recipe-importer';
+import { createRecipe, getRecipe } from './db/repositories/recipes.repo';
+import { resolveIngredients } from './optimizer/ingredient-resolver';
+import { computePlanCost } from './optimizer/optimizer';
+import type { ChainCode } from './ingestion/adapter.interface';
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
@@ -105,6 +110,12 @@ async function main() {
       break;
     case "stats":
       await handleStats();
+      break;
+    case "recipe-import":
+      await handleRecipeImport(process.argv[3]);
+      break;
+    case "cost-recipe":
+      await handleCostRecipe(process.argv.slice(3));
       break;
     default:
       console.error(`Unknown command: ${command}`);
@@ -540,6 +551,82 @@ async function handleStats() {
     }
   }
   console.log("");
+}
+
+async function handleRecipeImport(url: string | undefined) {
+  if (!url) {
+    console.error('Usage: tsx src/index.ts recipe-import <url>');
+    process.exit(1);
+  }
+  console.log(`[recipe-import] fetching ${url}`);
+  const imported = await importRecipeFromUrl(url);
+  console.log(`[recipe-import] parsed: "${imported.title}" — ${imported.ingredients.length} ingredients`);
+  const lowConfidence = imported.ingredients.filter((i) => i.confidence === 'low');
+  if (lowConfidence.length > 0) {
+    console.log(`[recipe-import] ${lowConfidence.length} low-confidence ingredient(s) (Plan D LLM enrichment will resolve):`);
+    for (const ing of lowConfidence) console.log(`  - "${ing.raw}"`);
+  }
+  try {
+    const persisted = await createRecipe(imported);
+    console.log(`[recipe-import] saved with id ${persisted.recipe.id}`);
+    console.log(`  next: npm run cost-recipe ${persisted.recipe.id}`);
+  } catch (e) {
+    console.error(`[recipe-import] DB persist failed (migration 005 likely not applied): ${e instanceof Error ? e.message : String(e)}`);
+    console.log('[recipe-import] Recipe was successfully parsed but not saved. Apply migration 005 and re-run.');
+    console.log(JSON.stringify(imported, null, 2));
+  }
+}
+
+async function handleCostRecipe(args: string[]) {
+  const recipeId = args[0];
+  if (!recipeId) {
+    console.error('Usage: tsx src/index.ts cost-recipe <recipe-id> [--servings N] [--budget N] [--chains MENY,KIWI,AFOOD]');
+    process.exit(1);
+  }
+  const servings = parseFlagNum(args, '--servings', 4);
+  const budget = parseFlagNum(args, '--budget', 1500);
+  const chainsRaw = parseFlagStr(args, '--chains', 'MENY,KIWI,AFOOD');
+  const allowedChains = chainsRaw.split(',').map((c) => c.trim().toUpperCase()) as ChainCode[];
+
+  const recipe = await getRecipe(recipeId);
+  if (!recipe) {
+    console.error(`[cost-recipe] recipe ${recipeId} not found`);
+    process.exit(1);
+  }
+
+  // Build the lookup-name list mirroring the optimizer's extraction logic.
+  const ingredientNames = recipe.ingredients
+    .filter((i) => typeof i.quantity_grams === 'number' && i.quantity_grams > 0)
+    .map((i) => i.raw_text.replace(/^\s*\d+(?:[.,/]\d+)?\s*\S*\s*/, '').trim().toLowerCase());
+
+  const candidates = await resolveIngredients(ingredientNames, { chains: allowedChains });
+
+  const result = computePlanCost({
+    mealPlan: [{ recipeId, servings }],
+    recipes: new Map([[recipeId, recipe]]),
+    pantry: [],
+    productCandidatesPerIngredient: candidates,
+    householdContext: {
+      allowedChains,
+      weeklyBudgetNok: budget,
+      storeStopPenaltyNok: 10,
+    },
+  });
+
+  console.log(JSON.stringify(result, null, 2));
+}
+
+function parseFlagNum(args: string[], name: string, fallback: number): number {
+  const idx = args.indexOf(name);
+  if (idx === -1 || !args[idx + 1]) return fallback;
+  const v = parseFloat(args[idx + 1]);
+  return Number.isFinite(v) ? v : fallback;
+}
+
+function parseFlagStr(args: string[], name: string, fallback: string): string {
+  const idx = args.indexOf(name);
+  if (idx === -1 || !args[idx + 1]) return fallback;
+  return args[idx + 1];
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
