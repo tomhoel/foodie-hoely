@@ -9,6 +9,16 @@ import { config } from "../../config";
 import { getSupabase, startSyncLog, completeSyncLog, failSyncLog } from "../../db/client";
 import { fetchWithRetry, delayWithJitter } from "../retry-helpers";
 import type { ProductInsert } from "../../db/types";
+import type {
+  AdapterCapability,
+  ChainCode,
+  HealthStatus,
+  IngestionAdapter,
+  OfferRecord,
+  PriceUpdate,
+  SyncOptions as AdapterSyncOptions,
+  SyncResult,
+} from '../adapter.interface';
 
 export interface SyncOptions {
   syncTimestamp?: string;
@@ -167,6 +177,47 @@ export async function syncMeny(opts: SyncOptions = {}): Promise<{ synced: number
     console.error(`[Meny] Sync failed:`, err.message);
     await failSyncLog(logId, err.message);
     throw err;
+  }
+}
+
+// ─── IngestionAdapter implementation ─────────────────────────────────────────
+
+export class MenyDirectAdapter implements IngestionAdapter {
+  readonly name = 'meny-direct';
+  readonly capabilities: AdapterCapability[] = ['products', 'prices'];
+  readonly chains: ChainCode[] = ['MENY'];
+
+  async syncProducts(opts: AdapterSyncOptions): Promise<SyncResult> {
+    const started = new Date();
+    let productsUpserted = 0;
+    const errors: SyncResult['errors'] = [];
+    try {
+      // Delegate to the existing syncMeny() exported above.
+      // Phase 0 maps the adapter's `since` to legacy `syncTimestamp`;
+      // `limit` and `dryRun` are not yet honored by the legacy path
+      // and will be wired up properly in Plan B.
+      const result = await syncMeny({
+        syncTimestamp: opts.since?.toISOString(),
+      });
+      productsUpserted = result.synced;
+    } catch (e) {
+      errors.push({ message: e instanceof Error ? e.message : String(e) });
+    }
+    return { adapter: this.name, started, finished: new Date(), productsUpserted, errors };
+  }
+
+  async refreshPrices(_eans: string[]): Promise<PriceUpdate[]> {
+    // Phase-0 stub. Real implementation lands in Plan B.
+    return [];
+  }
+
+  async fetchOffers(_dealerCode: ChainCode): Promise<OfferRecord[]> {
+    throw new Error('MenyDirectAdapter does not provide offers; use EtilbudsavisAdapter (spec §3)');
+  }
+
+  async healthCheck(): Promise<HealthStatus> {
+    // Phase-0 stub. Real check lands in Plan B.
+    return { ok: true, lastSuccess: new Date() };
   }
 }
 
