@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { IngestionAdapter, AdapterCapability, ChainCode } from '../ingestion/adapter.interface';
+import type { IngestionAdapter, AdapterCapability, ChainCode, OfferRecord } from '../ingestion/adapter.interface';
 
 describe('IngestionAdapter interface', () => {
   it('declares required ChainCode literal union', () => {
@@ -24,7 +24,7 @@ describe('IngestionAdapter interface', () => {
       async refreshPrices(eans: string[]) {
         return eans.map((ean) => ({ ean, price: 0, currency: 'NOK' as const, observedAt: new Date() }));
       }
-      async fetchOffers() {
+      async fetchOffers(_dealerCode: ChainCode): Promise<OfferRecord[]> {
         throw new Error('test adapter does not support offers');
       }
       async healthCheck() {
