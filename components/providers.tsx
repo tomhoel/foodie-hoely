@@ -10,10 +10,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <header className="flex h-14 items-center gap-2 border-b px-4">
-            <SidebarTrigger />
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
           </header>
-          <main className="flex-1">
+          <main className="flex-1 overflow-auto">
             {children}
           </main>
         </SidebarInset>

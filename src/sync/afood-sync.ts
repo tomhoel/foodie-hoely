@@ -7,7 +7,12 @@
 
 import { config } from "../config";
 import { getSupabase, startSyncLog, completeSyncLog, failSyncLog } from "../db/client";
+import { fetchWithRetry, delayWithJitter } from "./retry-helpers";
 import type { ProductInsert } from "../db/types";
+
+export interface SyncOptions {
+  syncTimestamp?: string;
+}
 
 const HEADERS = {
   "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
@@ -16,7 +21,7 @@ const HEADERS = {
 // ─── API helpers ─────────────────────────────────────────────────────────────
 
 async function fetchJson(url: string, init?: RequestInit): Promise<any> {
-  const res = await fetch(url, { headers: HEADERS, ...init });
+  const res = await fetchWithRetry(url, { headers: HEADERS, ...init });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
   return res.json();
 }
@@ -166,7 +171,7 @@ async function fetchCategories(): Promise<Map<number, { name: string; parent: nu
     }
     if (data.length < 100) break;
     page++;
-    await delay(config.sync.delayMs);
+    await delayWithJitter();
   }
   return categories;
 }
@@ -184,9 +189,12 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Keep delay for non-sync uses; sync paths use delayWithJitter
+
 // ─── Main sync ───────────────────────────────────────────────────────────────
 
-export async function syncAfood(): Promise<{ synced: number }> {
+export async function syncAfood(opts: SyncOptions = {}): Promise<{ synced: number }> {
+  const syncTimestamp = opts.syncTimestamp || new Date().toISOString();
   const db = getSupabase();
   const logId = await startSyncLog("afood", "full");
 
@@ -225,35 +233,87 @@ export async function syncAfood(): Promise<{ synced: number }> {
           sku: "",
         });
       }
-      await delay(config.sync.delayMs);
+      await delayWithJitter();
     }
 
-    console.log(`[aFood] Fetched ${allProducts.length} products. Enriching with prices...`);
+    console.log(`[aFood] Fetched ${allProducts.length} products. Loading existing prices from DB...`);
 
-    // Enrich with prices via AJAX search (batch by first word)
-    const firstWords = new Set<string>();
-    for (const p of allProducts) {
-      const word = p.name.replace(/[^\w\s]/g, "").split(/\s+/)[0]?.toLowerCase();
-      if (word && word.length >= 2) firstWords.add(word);
-    }
-
-    const priceMap = new Map<number, { price: number | null; image: string }>();
-    let batchNum = 0;
-    for (const word of firstWords) {
-      const results = await ajaxSearch(word);
-      for (const r of results) {
-        if (!priceMap.has(r.id)) {
-          priceMap.set(r.id, { price: r.price, image: r.image });
+    // Load existing prices from DB to avoid redundant AJAX calls
+    const existingPrices = new Map<string, { price: number | null; image: string | null }>();
+    const PRICE_STALE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+    let dbFrom = 0;
+    const dbPageSize = 1000;
+    while (true) {
+      const { data: rows } = await db
+        .from("products")
+        .select("external_id, price, image_url, last_synced_at")
+        .eq("source", "afood")
+        .range(dbFrom, dbFrom + dbPageSize - 1);
+      if (!rows || rows.length === 0) break;
+      for (const row of rows) {
+        const isFresh = Date.now() - new Date(row.last_synced_at).getTime() < PRICE_STALE_MS;
+        if (isFresh && row.price !== null) {
+          existingPrices.set(row.external_id, { price: row.price, image: row.image_url });
         }
       }
-      batchNum++;
-      if (batchNum % 20 === 0) {
-        console.log(`[aFood] Price batch ${batchNum}/${firstWords.size}...`);
-      }
-      await delay(config.sync.delayMs);
+      if (rows.length < dbPageSize) break;
+      dbFrom += dbPageSize;
     }
 
-    console.log(`[aFood] Got prices for ${priceMap.size} products. Upserting to DB...`);
+    console.log(`[aFood] ${existingPrices.size} products have fresh prices in DB`);
+
+    // Identify products that need an AJAX price lookup
+    const needsPriceLookup = new Set<string>(); // first words of products needing prices
+    const productIdSet = new Set<number>();      // product IDs that need prices
+    for (const p of allProducts) {
+      if (!existingPrices.has(String(p.id))) {
+        productIdSet.add(p.id);
+        const word = p.name.replace(/[^\w\s]/g, "").split(/\s+/)[0]?.toLowerCase();
+        if (word && word.length >= 2) needsPriceLookup.add(word);
+      }
+    }
+
+    console.log(`[aFood] ${productIdSet.size} products need fresh prices (${needsPriceLookup.size} AJAX searches)...`);
+
+    // Seed priceMap with existing DB prices
+    const priceMap = new Map<number, { price: number | null; image: string }>();
+    for (const p of allProducts) {
+      const existing = existingPrices.get(String(p.id));
+      if (existing) {
+        priceMap.set(p.id, { price: existing.price, image: existing.image || "" });
+      }
+    }
+
+    // AJAX search only for products that need it
+    const words = Array.from(needsPriceLookup);
+    const concurrency = 2;
+    let completed = 0;
+
+    for (let i = 0; i < words.length; i += concurrency) {
+      const chunk = words.slice(i, i + concurrency);
+      const chunkResults = await Promise.all(
+        chunk.map((word) =>
+          ajaxSearch(word).catch((err) => {
+            console.warn(`[aFood] AJAX search "${word}" failed: ${err.message}`);
+            return [] as AjaxProduct[];
+          }),
+        ),
+      );
+      for (const results of chunkResults) {
+        for (const r of results) {
+          if (!priceMap.has(r.id)) {
+            priceMap.set(r.id, { price: r.price, image: r.image });
+          }
+        }
+      }
+      completed += chunk.length;
+      if (words.length > 0 && (completed % 30 === 0 || completed === words.length)) {
+        console.log(`[aFood] Price batch ${completed}/${words.length}...`);
+      }
+      await delayWithJitter();
+    }
+
+    console.log(`[aFood] Got prices for ${priceMap.size} products (${words.length} AJAX calls). Upserting to DB...`);
 
     // Upsert in batches
     let synced = 0;
@@ -283,14 +343,14 @@ export async function syncAfood(): Promise<{ synced: number }> {
       });
 
       if (batch.length >= config.sync.batchSize) {
-        await upsertBatch(db, batch);
+        await upsertBatch(db, batch, syncTimestamp);
         synced += batch.length;
         batch.length = 0;
       }
     }
 
     if (batch.length > 0) {
-      await upsertBatch(db, batch);
+      await upsertBatch(db, batch, syncTimestamp);
       synced += batch.length;
     }
 
@@ -304,11 +364,11 @@ export async function syncAfood(): Promise<{ synced: number }> {
   }
 }
 
-async function upsertBatch(db: ReturnType<typeof getSupabase>, batch: ProductInsert[]): Promise<void> {
+async function upsertBatch(db: ReturnType<typeof getSupabase>, batch: ProductInsert[], syncTimestamp: string): Promise<void> {
   const { error } = await db
     .from("products")
     .upsert(
-      batch.map((p) => ({ ...p, last_synced_at: new Date().toISOString() })),
+      batch.map((p) => ({ ...p, is_discontinued: false, last_synced_at: syncTimestamp })),
       { onConflict: "source,external_id" }
     );
   if (error) throw new Error(`Upsert failed: ${error.message}`);

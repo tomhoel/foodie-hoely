@@ -28,6 +28,8 @@ export interface Product {
   ai_description: string | null;
   ai_description_en: string | null;
   ai_tags: string[];
+  is_discontinued: boolean;
+  price_changed_at: string | null;
   last_synced_at: string;
   created_at: string;
   updated_at: string;
@@ -125,6 +127,10 @@ export interface SyncLog {
   products_synced: number;
   products_enriched: number;
   embeddings_generated: number;
+  products_added: number;
+  products_updated: number;
+  products_removed: number;
+  price_changes: number;
   error_message: string | null;
   started_at: string;
   completed_at: string | null;

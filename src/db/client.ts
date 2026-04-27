@@ -25,7 +25,15 @@ export async function startSyncLog(source: string, syncType: string): Promise<st
 // Helper: complete a sync log entry
 export async function completeSyncLog(
   logId: string,
-  stats: { products_synced?: number; products_enriched?: number; embeddings_generated?: number }
+  stats: {
+    products_synced?: number;
+    products_enriched?: number;
+    embeddings_generated?: number;
+    products_added?: number;
+    products_updated?: number;
+    products_removed?: number;
+    price_changes?: number;
+  }
 ): Promise<void> {
   const db = getSupabase();
   const { error } = await db

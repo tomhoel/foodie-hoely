@@ -322,15 +322,24 @@ export async function cook(
     dietary?: DietaryConstraints;
     tasteProfile?: TasteProfile;
     tasteOverrides?: Partial<TasteProfile>;
+    /** Pass a previously cached recipe to skip AI generation */
+    cachedRecipe?: GeneratedRecipe;
   } = {}
 ): Promise<ShoppingCart> {
   const servings = options.servings || 4;
 
-  console.log(`\n🍳 Generating recipe: "${request}" (${servings} servings)...\n`);
-  let recipe = await generateRecipe(request, servings, {
-    tasteProfile: options.tasteProfile,
-    tasteOverrides: options.tasteOverrides,
-  });
+  let recipe: GeneratedRecipe;
+
+  if (options.cachedRecipe) {
+    console.log(`\n⚡ Using cached recipe: "${options.cachedRecipe.name}"\n`);
+    recipe = options.cachedRecipe;
+  } else {
+    console.log(`\n🍳 Generating recipe: "${request}" (${servings} servings)...\n`);
+    recipe = await generateRecipe(request, servings, {
+      tasteProfile: options.tasteProfile,
+      tasteOverrides: options.tasteOverrides,
+    });
+  }
 
   console.log(`📖 ${recipe.name}`);
   console.log(`   ${recipe.description}`);

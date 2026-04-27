@@ -7,7 +7,12 @@
 
 import { config } from "../config";
 import { getSupabase, startSyncLog, completeSyncLog, failSyncLog } from "../db/client";
+import { fetchWithRetry, delayWithJitter } from "./retry-helpers";
 import type { ProductInsert } from "../db/types";
+
+export interface SyncOptions {
+  syncTimestamp?: string;
+}
 
 const HEADERS: Record<string, string> = {
   "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
@@ -55,7 +60,7 @@ async function searchProducts(query: string, pageSize: number = 50): Promise<any
     full_response: "true",
   });
   const url = `${config.meny.apiBase}/api/episearch/${config.meny.chainId}/products?${params}`;
-  const res = await fetch(url, { headers: HEADERS });
+  const res = await fetchWithRetry(url, { headers: HEADERS });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
   return res.json();
 }
@@ -102,7 +107,8 @@ function delay(ms: number): Promise<void> {
 
 // ─── Main sync ───────────────────────────────────────────────────────────────
 
-export async function syncMeny(): Promise<{ synced: number }> {
+export async function syncMeny(opts: SyncOptions = {}): Promise<{ synced: number }> {
+  const syncTimestamp = opts.syncTimestamp || new Date().toISOString();
   const db = getSupabase();
   const logId = await startSyncLog("meny", "full");
 
@@ -135,7 +141,7 @@ export async function syncMeny(): Promise<{ synced: number }> {
         console.warn(`[Meny] Search "${term}" failed: ${err.message}`);
       }
 
-      await delay(config.sync.delayMs);
+      await delayWithJitter();
     }
 
     console.log(`[Meny] Found ${allProducts.length} unique products. Upserting to DB...`);
@@ -147,7 +153,7 @@ export async function syncMeny(): Promise<{ synced: number }> {
       const { error } = await db
         .from("products")
         .upsert(
-          batch.map((p) => ({ ...p, last_synced_at: new Date().toISOString() })),
+          batch.map((p) => ({ ...p, is_discontinued: false, last_synced_at: syncTimestamp })),
           { onConflict: "source,external_id" }
         );
       if (error) throw new Error(`Upsert failed: ${error.message}`);

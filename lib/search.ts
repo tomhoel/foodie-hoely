@@ -10,9 +10,10 @@ export interface SearchResult extends Dish {
 // Create Fuse instance for fuzzy search
 const fuse = new Fuse(dishes, {
   keys: [
-    { name: 'name', weight: 0.6 },
-    { name: 'tags', weight: 0.25 },
-    { name: 'cuisine', weight: 0.15 },
+    { name: 'name', weight: 0.5 },
+    { name: 'nativeName', weight: 0.2 },
+    { name: 'tags', weight: 0.2 },
+    { name: 'cuisine', weight: 0.1 },
   ],
   threshold: 0.4,
   includeScore: true,
@@ -34,7 +35,7 @@ export function searchLocal(query: string): SearchResult[] {
   if (!query.trim() || query.length < 2) return [];
   const exactResults = dishes
     .map((d) => {
-      const sc = scoreMatch(d.name, query);
+      const sc = Math.max(scoreMatch(d.name, query), d.nativeName ? scoreMatch(d.nativeName, query) : 0);
       return sc > 0 ? { ...d, _score: sc } : null;
     })
     .filter((d): d is SearchResult => d !== null);

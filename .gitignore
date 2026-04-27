@@ -6,3 +6,4 @@ dist/
 *.db
 *.log
 .vercel
+.env*.local

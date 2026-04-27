@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { Search, X, ChevronRight, Loader2 } from 'lucide-react';
 import { searchLocal, fetchMealDB, mergeResults, type SearchResult } from '@/lib/search';
-import { dishes, CUISINE_COLORS } from '@/lib/dishes';
+import { dishes, CUISINE_COLORS, getFeaturedDishes } from '@/lib/dishes';
 import { Logo } from '@/components/logo';
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
@@ -14,27 +15,34 @@ function highlight(text: string, query: string): ReactNode {
   const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
-      <span key={i} className="text-orange-600 font-semibold">
-        {part}
-      </span>
+      <span key={i} className="text-orange-600 font-semibold">{part}</span>
     ) : (
       part
     ),
   );
 }
 
-function getRandomHints(count: number) {
-  const shuffled = [...dishes].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
-}
-
 function cuisineColor(cuisine: string): string {
   return CUISINE_COLORS[cuisine] || CUISINE_COLORS.default;
 }
 
+const CUISINE_FLAG_CODES: Record<string, string> = {
+  Thai: 'th',
+  Korean: 'kr',
+  Japanese: 'jp',
+  Vietnamese: 'vn',
+  Chinese: 'cn',
+  Indian: 'in',
+  Indonesian: 'id',
+};
+
 /* ── Component ───────────────────────────────────────────────────── */
 
-export function SearchPage() {
+interface SearchPageProps {
+  descriptions?: Record<string, string>;
+}
+
+export function SearchPage({ descriptions = {} }: SearchPageProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -46,14 +54,30 @@ export function SearchPage() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [loading, setLoading] = useState(false);
-  const [hints] = useState(() => getRandomHints(5));
 
-  // Auto-focus the search input on mount
-  useEffect(() => {
-    inputRef.current?.focus();
+  const cuisines = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const d of dishes) {
+      counts.set(d.cuisine, (counts.get(d.cuisine) || 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({ name, count }));
   }, []);
 
-  // Close dropdown on click outside
+  const topics = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const d of dishes) {
+      counts.set(d.category, (counts.get(d.category) || 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([name, count]) => ({ name, count }));
+  }, []);
+
+  const featured = useMemo(() => getFeaturedDishes(4), []);
+
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -66,7 +90,7 @@ export function SearchPage() {
   }, []);
 
   const navigateToDish = useCallback(
-    (dish: SearchResult) => {
+    (dish: { name: string; image?: string | null; cuisine?: string }) => {
       const params = new URLSearchParams({
         dish: dish.name,
         img: dish.image || '',
@@ -77,54 +101,35 @@ export function SearchPage() {
     [router],
   );
 
-  const handleSearch = useCallback(
-    (value: string) => {
-      setQuery(value);
-      setActiveIndex(-1);
-
-      // Cancel any pending API request
-      if (abortRef.current) {
-        abortRef.current.abort();
-        abortRef.current = null;
-      }
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-        debounceRef.current = null;
-      }
-
-      if (!value.trim() || value.length < 2) {
-        setResults([]);
+  const handleSearch = useCallback((value: string) => {
+    setQuery(value);
+    setActiveIndex(-1);
+    if (abortRef.current) { abortRef.current.abort(); abortRef.current = null; }
+    if (debounceRef.current) { clearTimeout(debounceRef.current); debounceRef.current = null; }
+    if (!value.trim() || value.length < 2) {
+      setResults([]);
+      setLoading(false);
+      return;
+    }
+    const localResults = searchLocal(value);
+    setResults(localResults.slice(0, 7));
+    setLoading(true);
+    debounceRef.current = setTimeout(async () => {
+      const controller = new AbortController();
+      abortRef.current = controller;
+      try {
+        const apiResults = await fetchMealDB(value, controller.signal);
+        const merged = mergeResults(localResults, apiResults, value);
+        setResults(merged);
+      } catch { /* aborted */ } finally {
         setLoading(false);
-        return;
       }
-
-      // Immediate local search
-      const localResults = searchLocal(value);
-      setResults(localResults.slice(0, 7));
-
-      // Debounced API search
-      setLoading(true);
-      debounceRef.current = setTimeout(async () => {
-        const controller = new AbortController();
-        abortRef.current = controller;
-        try {
-          const apiResults = await fetchMealDB(value, controller.signal);
-          const merged = mergeResults(localResults, apiResults, value);
-          setResults(merged);
-        } catch {
-          // Aborted or network error — keep local results
-        } finally {
-          setLoading(false);
-        }
-      }, 300);
-    },
-    [],
-  );
+    }, 300);
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (results.length === 0) return;
-
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
@@ -136,11 +141,8 @@ export function SearchPage() {
           break;
         case 'Enter':
           e.preventDefault();
-          if (activeIndex >= 0 && activeIndex < results.length) {
-            navigateToDish(results[activeIndex]);
-          } else if (results.length > 0) {
-            navigateToDish(results[0]);
-          }
+          if (activeIndex >= 0 && activeIndex < results.length) navigateToDish(results[activeIndex]);
+          else if (results.length > 0) navigateToDish(results[0]);
           break;
         case 'Escape':
           e.preventDefault();
@@ -160,7 +162,6 @@ export function SearchPage() {
     [results, activeIndex, navigateToDish, handleSearch],
   );
 
-  // Scroll active item into view in the dropdown
   useEffect(() => {
     if (activeIndex >= 0 && dropdownRef.current) {
       const items = dropdownRef.current.querySelectorAll('[data-result-item]');
@@ -177,110 +178,56 @@ export function SearchPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] px-4" style={{ backgroundColor: '#FAFAF8' }}>
-      <div className="w-full max-w-xl flex flex-col items-center gap-6 py-12">
-        {/* ── Logo & branding ──────────────────────────────────── */}
-        <div className="flex flex-col items-center gap-2">
-          <Logo size={80} />
-          <h1 className="text-3xl font-bold tracking-tight" style={{ color: '#1A1A18' }}>
-            hoely
+    <div className="flex min-h-[calc(100dvh-48px)] flex-col items-center justify-center px-6">
+      <div className="w-full -mt-4">
+
+        {/* ── Brand ──────────────────────────────────────────── */}
+        <div className="flex flex-col items-center text-center mb-8">
+          <div className="mb-4">
+            <Logo size={40} />
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            What are you cooking<span className="text-orange-500">?</span>
           </h1>
-          <p className="text-sm" style={{ color: '#7A7A72' }}>
-            Thai &amp; Asian recipes, real prices
+          <p className="mt-1.5 text-[13px] text-muted-foreground">
+            {dishes.length} recipes &middot; real prices from Meny &amp; aFood
           </p>
         </div>
 
-        {/* ── Search input + dropdown ──────────────────────────── */}
-        <div ref={wrapperRef} className="relative w-full">
-          <div
-            className="flex items-center gap-3 px-4 py-3 bg-white transition-shadow focus-within:shadow-lg"
-            style={{
-              borderRadius: '16px',
-              border: '1px solid rgba(0,0,0,0.06)',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-            }}
-          >
-            {/* Search icon */}
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#AEAEA6"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="shrink-0"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-
+        {/* ── Search ──────────────────────────────────────────── */}
+        <div ref={wrapperRef} className="relative mb-8 mx-auto max-w-xl">
+          <div className="flex items-center gap-3 rounded-2xl bg-muted/50 border border-border px-5 py-4 transition-all focus-within:bg-background focus-within:border-orange-400/60 focus-within:ring-4 focus-within:ring-orange-50 dark:bg-muted/30 dark:focus-within:bg-background dark:focus-within:ring-orange-950/30">
+            <Search className="size-[18px] shrink-0 text-muted-foreground" strokeWidth={2} />
             <input
               ref={inputRef}
               type="text"
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Search dishes..."
-              className="flex-1 bg-transparent outline-none text-[15px] placeholder:text-[#AEAEA6]"
-              style={{ color: '#1A1A18' }}
+              placeholder="Search dishes... Pad Thai, \u0E1C\u0E31\u0E14\u0E44\u0E17\u0E22, \u30E9\u30FC\u30E1\u30F3"
+              className="flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground/60"
               autoComplete="off"
               spellCheck={false}
             />
-
-            {/* Loading spinner */}
-            {loading && (
-              <svg
-                className="animate-spin shrink-0"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#E8590C"
-                strokeWidth="2.5"
-              >
-                <path d="M12 2 A10 10 0 0 1 22 12" strokeLinecap="round" />
-              </svg>
-            )}
-
-            {/* Clear button */}
+            {loading && <Loader2 className="size-4 shrink-0 animate-spin text-orange-400" />}
             {query && !loading && (
               <button
                 onClick={clearSearch}
-                className="shrink-0 p-0.5 rounded-full hover:bg-gray-100 transition-colors"
+                className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
                 aria-label="Clear search"
                 type="button"
               >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#AEAEA6"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+                <X className="size-3.5" />
               </button>
             )}
           </div>
 
-          {/* ── Dropdown results ──────────────────────────────── */}
+          {/* Dropdown */}
           {results.length > 0 && (
             <div
               ref={dropdownRef}
-              className="absolute left-0 right-0 mt-2 bg-white overflow-hidden z-50"
-              style={{
-                borderRadius: '16px',
-                border: '1px solid rgba(0,0,0,0.06)',
-                boxShadow: '0 12px 40px rgba(0,0,0,0.10)',
-                maxHeight: '420px',
-                overflowY: 'auto',
-              }}
+              className="absolute left-0 right-0 z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-background shadow-lg"
+              style={{ maxHeight: '340px', overflowY: 'auto' }}
             >
               {results.map((dish, index) => (
                 <button
@@ -289,84 +236,120 @@ export function SearchPage() {
                   type="button"
                   onClick={() => navigateToDish(dish)}
                   onMouseEnter={() => setActiveIndex(index)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors group"
-                  style={{
-                    backgroundColor: activeIndex === index ? '#F5F5F0' : 'transparent',
-                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors cursor-pointer group ${
+                    activeIndex === index ? 'bg-accent' : 'hover:bg-accent/50'
+                  }`}
                 >
-                  {/* Dish image or avatar fallback */}
-                  {dish.image && dish.image.startsWith('http') ? (
-                    <img
-                      src={dish.image}
-                      alt={dish.name}
-                      className="w-10 h-10 rounded-lg object-cover shrink-0"
-                    />
+                  {dish.image ? (
+                    <img src={dish.image} alt="" className="size-9 rounded-lg object-cover shrink-0" />
                   ) : (
                     <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
+                      className="size-9 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
                       style={{ backgroundColor: cuisineColor(dish.cuisine) }}
                     >
                       {dish.name.charAt(0).toUpperCase()}
                     </div>
                   )}
-
-                  {/* Name + meta */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-[15px] font-medium truncate" style={{ color: '#1A1A18' }}>
+                    <div className="text-sm font-medium truncate text-foreground">
                       {highlight(dish.name, query)}
+                      {dish.nativeName && (
+                        <span className="ml-1.5 text-xs text-muted-foreground font-normal">{dish.nativeName}</span>
+                      )}
                     </div>
-                    <div className="text-xs truncate" style={{ color: '#AEAEA6' }}>
-                      {[dish.cuisine, dish.category].filter(Boolean).join(' · ')}
+                    <div className="text-[11px] truncate text-muted-foreground">
+                      {[dish.cuisine, dish.category].filter(Boolean).join(' \u00B7 ')}
                     </div>
                   </div>
-
-                  {/* Arrow icon */}
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#AEAEA6"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
+                  <ChevronRight className="size-3 shrink-0 text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* ── Hint buttons ─────────────────────────────────────── */}
-        <div className="flex flex-wrap justify-center gap-2 mt-2">
-          {hints.map((dish) => (
+        {/* ── Cuisines ────────────────────────────────────────── */}
+        <div className="flex flex-wrap justify-center gap-1 mb-8">
+          {cuisines.map(({ name }) => (
             <button
-              key={dish.name}
+              key={name}
               type="button"
               onClick={() => {
-                setQuery(dish.name);
-                handleSearch(dish.name);
+                setQuery(name);
+                handleSearch(name);
                 inputRef.current?.focus();
               }}
-              className="px-3 py-1.5 text-xs font-medium rounded-full transition-colors hover:bg-orange-50"
-              style={{
-                backgroundColor: '#F5F5F0',
-                color: '#7A7A72',
-                border: '1px solid rgba(0,0,0,0.04)',
-              }}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] text-foreground/80 hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
             >
-              {dish.name}
+              {CUISINE_FLAG_CODES[name] && (
+                <img
+                  src={`https://flagcdn.com/${CUISINE_FLAG_CODES[name]}.svg`}
+                  alt={`${name} flag`}
+                  className="size-4 rounded-[2px] shrink-0 object-cover"
+                />
+              )}
+              {name}
             </button>
           ))}
         </div>
 
-        {/* ── Footer ───────────────────────────────────────────── */}
-        <p className="text-xs mt-6" style={{ color: '#AEAEA6' }}>
-          Prices from Meny &amp; aFood
-        </p>
+        {/* ── Featured Dishes ─────────────────────────────────── */}
+        {featured.length > 0 && (
+          <div className="mb-8 mx-auto max-w-xl">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest mb-3 text-center">
+              Popular picks
+            </p>
+            <div className="grid grid-cols-4 gap-4">
+              {featured.map((dish) => (
+                <button
+                  key={dish.name}
+                  type="button"
+                  onClick={() => navigateToDish(dish)}
+                  className="group text-center cursor-pointer"
+                >
+                  <img
+                    src={dish.image!}
+                    alt={dish.name}
+                    className="aspect-square w-full rounded-xl object-cover mb-2 transition-transform duration-200 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="text-xs font-medium text-foreground truncate group-hover:text-orange-600 transition-colors">
+                    {dish.name}
+                  </div>
+                  {descriptions[dish.name] && (
+                    <p className="text-[10px] leading-tight text-muted-foreground mt-0.5 line-clamp-2">
+                      {descriptions[dish.name]}
+                    </p>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Categories ──────────────────────────────────────── */}
+        <div className="flex flex-wrap justify-center gap-2 mx-auto max-w-xl">
+          {topics.map(({ name, count }) => (
+            <button
+              key={name}
+              type="button"
+              onClick={() => {
+                setQuery(name);
+                handleSearch(name);
+                inputRef.current?.focus();
+              }}
+              className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50/60 dark:hover:border-orange-700 dark:hover:text-orange-400 dark:hover:bg-orange-950/30 cursor-pointer"
+            >
+              {name}
+              <span className="ml-1 text-muted-foreground/60 tabular-nums">{count}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* ── Footer ──────────────────────────────────────────── */}
+        <div className="mt-10 text-center text-[11px] text-muted-foreground/60 mx-auto max-w-xl">
+          Prices from Meny &amp; aFood &middot; Updated daily
+        </div>
       </div>
     </div>
   );

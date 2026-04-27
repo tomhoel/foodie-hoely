@@ -48,6 +48,8 @@
 }
 
 :root {
+    --store-meny: #00843D;
+    --store-afood: #C41E3A;
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);

@@ -24,7 +24,9 @@ export const config = {
   },
   sync: {
     batchSize: 50,
-    delayMs: 300,
+    delayMs: 500,
+    jitterMs: 200,
+    maxRetries: 3,
   },
   matching: {
     similarityThreshold: 0.45,
