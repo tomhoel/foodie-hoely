@@ -8,6 +8,7 @@ import { listActiveOffersForChains } from '../db/repositories/active-offers.repo
 import { createDraftMealPlan, persistMealPlanItems, lockMealPlan, getRecentCompletedMeals } from '../db/repositories/plans.repo';
 import { resolveIngredients } from '../optimizer/ingredient-resolver';
 import { getHouseholdSettings } from '../db/repositories/households.repo';
+import { computePlanCost } from '../optimizer/optimizer';
 import type { ChainCode } from '../ingestion/adapter.interface';
 import type { HouseholdPreferences } from './tools';
 
@@ -82,7 +83,6 @@ export async function planWeek(args: PlanWeekArgs): Promise<PlanWeekResult> {
   const outcome = await runPlannerLoop(ctx);
 
   // 4. Compute final cost (deterministic) for narration + persistence.
-  const { computePlanCost } = await import('../optimizer/optimizer');
   const cost = computePlanCost({
     mealPlan: outcome.recipeIds.map((id, i) => ({ recipeId: id, servings: outcome.servings[i] })),
     recipes: eligibleRecipes,
@@ -101,7 +101,9 @@ export async function planWeek(args: PlanWeekArgs): Promise<PlanWeekResult> {
   }));
   await persistMealPlanItems(draft.id, items);
 
-  // 6. Narration.
+  // 6. Narration. If this throws (e.g. AI Gateway unreachable), the row stays
+  // in 'draft' with items already persisted. Re-running for the same week
+  // upserts the draft and replaces items, so recovery is automatic.
   const narration = await narratePlan({
     recipes: outcome.recipeIds.map((id) => eligibleRecipes.get(id)!).filter(Boolean),
     cost,

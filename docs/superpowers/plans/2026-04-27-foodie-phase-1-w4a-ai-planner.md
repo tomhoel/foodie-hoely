@@ -45,7 +45,6 @@
 - src/planner/narrator.ts
 - src/planner/index.ts
 - src/planner/prompts.ts
-- src/__tests__/__fixtures__/planner/synthetic-context.json
 - scripts/seed-household.ts
 
 ## Files modified

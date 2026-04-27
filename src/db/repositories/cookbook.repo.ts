@@ -1,5 +1,4 @@
 import { getSupabase } from '../client';
-import type { RecipeRow } from './recipes.repo';
 
 export interface RecipeListItem {
   id: string;

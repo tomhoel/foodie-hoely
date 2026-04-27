@@ -681,7 +681,9 @@ AI Features:
   fuse <cuisineA> <cuisineB>             Fusion recipe lab
   pantry "chicken, rice, garlic..."      What can I cook with these?
   coach                                  Step-by-step cooking guidance
-  plan --meals 5 [--budget 800]          AI meal planner
+  plan --meals 5 [--budget 800]          AI meal planner (legacy, single recipe)
+  plan-week [--recipes 5] [--budget 1500] [--chains MENY,KIWI,AFOOD] [--week-start YYYY-MM-DD]
+                                         AI weekly planner (Sonnet 4.6 + Haiku narrator)
 
 Taste Profile:
   profile set --spice 8 --sweet 3        Set taste preferences (1-10)
