@@ -24,6 +24,7 @@ export const config = {
   app: {
     recipientEmail: process.env.FOODIE_RECIPIENT_EMAIL || "",
     cronSecret: process.env.CRON_SECRET || "",
+    alertEmail: process.env.FOODIE_ALERT_EMAIL || process.env.FOODIE_RECIPIENT_EMAIL || "",
   },
   meny: {
     storeId: process.env.MENY_STORE_ID || "7080001150488",
