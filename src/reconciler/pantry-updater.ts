@@ -18,7 +18,6 @@ export interface PantryUpsert {
   householdId: string;
   ean: string | null;
   productName: string;
-  productId: string | null;
   quantityGrams: number;
   confidence: number;
   lastSeenSource: 'receipt';
@@ -47,7 +46,6 @@ export function computePantryUpserts(args: ComputeArgs): PantryUpsert[] {
       householdId: args.householdId,
       ean: line.ean,
       productName: eanMatch?.name ?? line.nameRaw,
-      productId: eanMatch?.id ?? null,
       quantityGrams: grams,
       confidence: eanMatch ? 0.95 : 0.7,
       lastSeenSource: 'receipt',

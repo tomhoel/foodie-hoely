@@ -75,7 +75,11 @@ export async function reconcileTransaction(
   const purchaseDay = txn.purchased_at.slice(0, 10);
   const candidates = await loadCandidatesForHousehold(txn.household_id, purchaseDay);
 
-  // 5. Score the match.
+  // 5. Score the match. Phase 1 uses 0.3 (Jaccard) — softer than the design
+  // spec's 0.6 because Norwegian receipt names ("Kokosmelk Aroy-D 400ml")
+  // share few tokens with recipe ingredient texts ("200 g kokosmelk") even
+  // for true matches. Tunable per-household later; false positives are
+  // recoverable by manually flipping status back to 'planned'.
   const match = matchTransactionToPlannedMeal({
     transactionDate: purchaseDay,
     lineNames: lines.map((l) => l.name_raw),

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the Phase-1 Trumf integration loop — manual bearer-token CLI capture → fetch transactions from `platform-rest-prod.ngdata.no` → persist to `transactions` + `transaction_lines` (idempotent on `trumf_batch_id`) → reconcile each line against pantry (EAN→product upsert) and against recently-planned meals (mark `cooked` when ingredient overlap > 60%).
+**Goal:** Build the Phase-1 Trumf integration loop — manual bearer-token CLI capture → fetch transactions from `platform-rest-prod.ngdata.no` → persist to `transactions` + `transaction_lines` (idempotent on `trumf_batch_id`) → reconcile each line against pantry (EAN→product upsert) and against recently-planned meals (mark `cooked` when token Jaccard overlap > 0.3 — looser than the design spec's 0.6 because Norwegian receipt + recipe text share few tokens; tunable later).
 
 **Architecture:**
 - **Token storage** lives in `~/.foodie/trumf-token.json` (NOT in DB; Phase 2 moves to encrypted DB via Vercel Sandbox broker). Single-file pattern reuses `src/utils/storage.ts`.

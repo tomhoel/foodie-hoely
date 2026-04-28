@@ -81,12 +81,17 @@ export async function syncTrumfReceipts(opts: TrumfSyncOptions): Promise<TrumfSy
 
       if (inserted) summary.inserted++;
 
-      const recRes = await reconcileTransaction(txn, insertedLines);
-      summary.reconciled.push({
-        trumfBatchId: detaljer.batchid,
-        pantryUpserted: recRes.pantryUpserted,
-        planMatched: recRes.planMatched !== null,
-      });
+      // Reconcile only on first ingest of a given batch. Re-running sync
+      // after the user manually un-marks a meal as 'planned' should not
+      // silently re-mark it as 'cooked' from the same receipt.
+      if (inserted) {
+        const recRes = await reconcileTransaction(txn, insertedLines);
+        summary.reconciled.push({
+          trumfBatchId: detaljer.batchid,
+          pantryUpserted: recRes.pantryUpserted,
+          planMatched: recRes.planMatched !== null,
+        });
+      }
     } catch (e) {
       summary.errors.push(`${summary_t.batchid}: ${e instanceof Error ? e.message : String(e)}`);
     }
