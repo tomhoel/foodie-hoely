@@ -57,6 +57,7 @@ import { planWeek } from './planner';
 import { getOrCreateDefaultHousehold } from './db/repositories/households.repo';
 import { saveTrumfToken, loadTrumfToken, maskBearer } from './trumf/token';
 import { syncTrumfReceipts } from './trumf/sync';
+import { sendWeeklyPlanEmail } from './email/send-weekly-plan';
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
@@ -129,6 +130,9 @@ async function main() {
       break;
     case "trumf-sync":
       await handleTrumfSync(args);
+      break;
+    case "send-plan-email":
+      await handleSendPlanEmail(args);
       break;
     default:
       console.error(`Unknown command: ${command}`);
@@ -701,6 +705,32 @@ function defaultFraDate(): string {
   return d.toISOString().slice(0, 10);
 }
 
+async function handleSendPlanEmail(args: string[]) {
+  const to = parseFlagStr(args, '--to', '');
+  if (!to) {
+    console.error('Usage: send-plan-email --to "you@example.com" [--week-start YYYY-MM-DD] [--recipes 5] [--budget 1500] [--chains MENY,KIWI,AFOOD]');
+    process.exit(1);
+  }
+  const recipeCount = parseFlagNum(args, '--recipes', 5);
+  const weeklyBudgetNok = parseFlagNum(args, '--budget', 1500);
+  const chainsRaw = parseFlagStr(args, '--chains', 'MENY,KIWI,AFOOD');
+  const allowedChains = chainsRaw.split(',').map((c) => c.trim().toUpperCase()) as ChainCode[];
+  const weekStartFlag = parseFlagStr(args, '--week-start', '');
+  const weekStart = weekStartFlag || nextMondayIsoDate();
+
+  const hh = await getOrCreateDefaultHousehold();
+  console.log(`[send-plan-email] household=${hh.id} weekStart=${weekStart} to=${to}`);
+  const result = await sendWeeklyPlanEmail({
+    householdId: hh.id,
+    weekStart,
+    recipeCount,
+    weeklyBudgetNok,
+    allowedChains,
+    to,
+  });
+  console.log(JSON.stringify(result, null, 2));
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function parseFlag(args: string[], flag: string): string | undefined {
@@ -732,6 +762,8 @@ AI Features:
   trumf-set-token --bearer "<JWT>"       Save Trumf bearer for receipt sync
   trumf-sync [--fra YYYY-MM-DD] [--til YYYY-MM-DD]
                                          Pull Trumf receipts → pantry + plan match
+  send-plan-email --to "you@example.com" [--week-start YYYY-MM-DD]
+                                         Plan + email weekly meal plan
 
 Taste Profile:
   profile set --spice 8 --sweet 3        Set taste preferences (1-10)
