@@ -57,7 +57,9 @@ export function renderWeeklyPlanEmail(input: WeeklyPlanEmailInput): RenderedEmai
     : '';
 
   const html = `<!doctype html>
-<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#222;line-height:1.4;max-width:640px;margin:0 auto;padding:24px;">
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#222;line-height:1.4;max-width:640px;margin:0 auto;padding:24px;">
   <h1 style="margin:0 0 8px 0;font-size:22px;">Your week, planned 🍳</h1>
   <p style="color:#666;margin:0 0 24px 0;">Week of ${esc(input.weekStart)}</p>
 
@@ -95,7 +97,7 @@ export function renderWeeklyPlanEmail(input: WeeklyPlanEmailInput): RenderedEmai
     '',
     `Total: ${formatNok(input.totalNok)} NOK`,
     `Trumf bonus: ${formatNok(input.trumfEstimateNok)} NOK`,
-    input.pantrySavingsNok > 0 ? `Pantry savings: ${formatNok(input.pantrySavingsNok)} NOK` : '',
+    ...(input.pantrySavingsNok > 0 ? [`Pantry savings: ${formatNok(input.pantrySavingsNok)} NOK`] : []),
     `Stops: ${input.storeStops}`,
     '',
     'Per store:',
@@ -103,11 +105,8 @@ export function renderWeeklyPlanEmail(input: WeeklyPlanEmailInput): RenderedEmai
     '',
     'Why this plan:',
     input.narration,
-    '',
-    ...(input.warnings.length ? ['Warnings:', ...input.warnings.map((w) => `  - ${w}`)] : []),
-  ]
-    .filter((line) => line !== '')
-    .join('\n');
+    ...(input.warnings.length ? ['', 'Warnings:', ...input.warnings.map((w) => `  - ${w}`)] : []),
+  ].join('\n');
 
   return { subject, html, text };
 }

@@ -12,7 +12,7 @@
 - Tests: pure renderer tested with golden-output snapshot; Resend client tested with mock fetch.
 - Real Resend API never called in tests.
 
-**Tech Stack:** TypeScript 5.7, `resend@^4.x` (new dep), vitest, AI SDK v6 (already installed), Supabase (already installed). No new infra.
+**Tech Stack:** TypeScript 5.7, `resend@^6.x` (new dep), vitest, AI SDK v6 (already installed), Supabase (already installed). No new infra.
 
 **Spec reference:** docs/superpowers/specs/2026-04-27-foodie-grocery-planner-design.md (§5.3 step 7 "waitUntil: send email summary"; §13 Phase 1 Week 5)
 
