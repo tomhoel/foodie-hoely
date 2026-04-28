@@ -59,6 +59,8 @@ import { saveTrumfToken, loadTrumfToken, maskBearer } from './trumf/token';
 import { syncTrumfReceipts } from './trumf/sync';
 import { sendWeeklyPlanEmail } from './email/send-weekly-plan';
 import { runPhotoFlow } from './vision/photo-flow';
+import { runAudit } from './audit/send-audit';
+import { applyAuditReply } from './audit/apply-reply';
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
@@ -137,6 +139,12 @@ async function main() {
       break;
     case "photo":
       await handlePhoto(args);
+      break;
+    case "audit-run":
+      await handleAuditRun(args);
+      break;
+    case "audit-reply":
+      await handleAuditReply(args);
       break;
     default:
       console.error(`Unknown command: ${command}`);
@@ -761,6 +769,26 @@ async function handleSendPlanEmail(args: string[]) {
   console.log(JSON.stringify(result, null, 2));
 }
 
+async function handleAuditRun(args: string[]) {
+  const to = parseFlagStr(args, '--to', '');
+  if (!to) {
+    console.error('Usage: audit-run --to "you@example.com" [--top 10]');
+    process.exit(1);
+  }
+  const top = parseFlagNum(args, '--top', 10);
+  const hh = await getOrCreateDefaultHousehold();
+  console.log(`[audit-run] household=${hh.id} top=${top} to=${to}`);
+  const result = await runAudit({ householdId: hh.id, to, topN: top });
+  console.log(JSON.stringify(result, null, 2));
+}
+
+async function handleAuditReply(_args: string[]) {
+  const hh = await getOrCreateDefaultHousehold();
+  console.log(`[audit-reply] household=${hh.id}`);
+  const result = await applyAuditReply({ householdId: hh.id });
+  console.log(JSON.stringify(result, null, 2));
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function parseFlag(args: string[], flag: string): string | undefined {
@@ -795,6 +823,9 @@ AI Features:
   send-plan-email --to "you@example.com" [--week-start YYYY-MM-DD]
                                          Plan + email weekly meal plan
   photo <path> [--hint "what dish"]      Identify ingredients in dish photo + apply pantry deltas
+  audit-run --to "you@example.com" [--top 10]
+                                         Send pantry-uncertainty audit email
+  audit-reply                            Open last open audit + apply corrections
 
 Taste Profile:
   profile set --spice 8 --sweet 3        Set taste preferences (1-10)
