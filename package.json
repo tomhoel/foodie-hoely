@@ -27,7 +27,9 @@
     "recipe-import": "tsx src/index.ts recipe-import",
     "cost-recipe": "tsx src/index.ts cost-recipe",
     "plan-week": "tsx src/index.ts plan-week",
-    "seed:household": "tsx scripts/seed-household.ts"
+    "seed:household": "tsx scripts/seed-household.ts",
+    "trumf-set-token": "tsx src/index.ts trumf-set-token",
+    "trumf-sync": "tsx src/index.ts trumf-sync"
   },
   "keywords": [],
   "author": "",

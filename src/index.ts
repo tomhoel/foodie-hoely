@@ -55,6 +55,8 @@ import { computePlanCost } from './optimizer/optimizer';
 import type { ChainCode } from './ingestion/adapter.interface';
 import { planWeek } from './planner';
 import { getOrCreateDefaultHousehold } from './db/repositories/households.repo';
+import { saveTrumfToken, loadTrumfToken, maskBearer } from './trumf/token';
+import { syncTrumfReceipts } from './trumf/sync';
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
@@ -121,6 +123,12 @@ async function main() {
       break;
     case "plan-week":
       await handlePlanWeek(args);
+      break;
+    case "trumf-set-token":
+      handleTrumfSetToken(args);
+      break;
+    case "trumf-sync":
+      await handleTrumfSync(args);
       break;
     default:
       console.error(`Unknown command: ${command}`);
@@ -656,6 +664,43 @@ function nextMondayIsoDate(): string {
   return target.toISOString().slice(0, 10);
 }
 
+function handleTrumfSetToken(args: string[]) {
+  const bearer = parseFlagStr(args, '--bearer', '');
+  const refresh = parseFlagStr(args, '--refresh', '');
+  const expiresAt = parseFlagStr(args, '--expires-at', '');
+  if (!bearer) {
+    console.error('Usage: trumf-set-token --bearer "<JWT>" [--refresh "<token>"] [--expires-at "<ISO>"]');
+    console.error('Capture the bearer from your logged-in browser at trumf.no via DevTools → Network → any /trumf/* request → Authorization header.');
+    process.exit(1);
+  }
+  const saved = saveTrumfToken({
+    bearer,
+    refresh: refresh || undefined,
+    expiresAt: expiresAt || undefined,
+  });
+  console.log(`[trumf-set-token] saved bearer ${maskBearer(saved.bearer)} at ${saved.capturedAt}`);
+}
+
+async function handleTrumfSync(args: string[]) {
+  const token = loadTrumfToken();
+  if (!token) {
+    console.error('No Trumf token. Run `npm run trumf-set-token -- --bearer "<JWT>"` first.');
+    process.exit(1);
+  }
+  const fra = parseFlagStr(args, '--fra', defaultFraDate());
+  const til = parseFlagStr(args, '--til', new Date().toISOString().slice(0, 10));
+  const hh = await getOrCreateDefaultHousehold();
+  console.log(`[trumf-sync] household=${hh.id} fra=${fra} til=${til}`);
+  const summary = await syncTrumfReceipts({ householdId: hh.id, fra, til });
+  console.log(JSON.stringify(summary, null, 2));
+}
+
+function defaultFraDate(): string {
+  // Default range: last 30 days.
+  const d = new Date(Date.now() - 30 * 86_400_000);
+  return d.toISOString().slice(0, 10);
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function parseFlag(args: string[], flag: string): string | undefined {
@@ -684,6 +729,9 @@ AI Features:
   plan --meals 5 [--budget 800]          AI meal planner (legacy, single recipe)
   plan-week [--recipes 5] [--budget 1500] [--chains MENY,KIWI,AFOOD] [--week-start YYYY-MM-DD]
                                          AI weekly planner (Sonnet 4.6 + Haiku narrator)
+  trumf-set-token --bearer "<JWT>"       Save Trumf bearer for receipt sync
+  trumf-sync [--fra YYYY-MM-DD] [--til YYYY-MM-DD]
+                                         Pull Trumf receipts → pantry + plan match
 
 Taste Profile:
   profile set --spice 8 --sweet 3        Set taste preferences (1-10)
