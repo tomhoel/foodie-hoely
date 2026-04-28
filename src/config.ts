@@ -21,6 +21,10 @@ export const config = {
     resendApiKey: process.env.RESEND_API_KEY || "",
     from: process.env.RESEND_FROM || "Foodie <onboarding@resend.dev>",
   },
+  app: {
+    recipientEmail: process.env.FOODIE_RECIPIENT_EMAIL || "",
+    cronSecret: process.env.CRON_SECRET || "",
+  },
   meny: {
     storeId: process.env.MENY_STORE_ID || "7080001150488",
     apiBase: "https://platform-rest-prod.ngdata.no",
