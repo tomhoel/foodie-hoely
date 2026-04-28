@@ -1,0 +1,13 @@
+{
+  "batchid": "BATCH-2026-04-15-001",
+  "butikk": "MENY Sandvika",
+  "dato": "2026-04-15",
+  "sum": 487.40,
+  "bonus": 4.87,
+  "varer": [
+    { "vareTekst": "Kokosmelk Aroy-D 400ml", "ean": "8851014300033", "antall": 2, "belop": 49.80 },
+    { "vareTekst": "Sitrongress fersk",      "ean": "7038010000010", "antall": 1, "belop": 18.90 },
+    { "vareTekst": "Kyllingfilet 500g",      "ean": "7037100000123", "antall": 1, "belop": 119.00 },
+    { "vareTekst": "Limefrukt løsvekt",      "ean": null,             "antall": 4, "belop": 28.00 }
+  ]
+}

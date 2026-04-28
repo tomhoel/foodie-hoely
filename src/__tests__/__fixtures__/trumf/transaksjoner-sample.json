@@ -1,0 +1,19 @@
+{
+  "transaksjoner": [
+    {
+      "batchid": "BATCH-2026-04-15-001",
+      "butikk": "MENY Sandvika",
+      "dato": "2026-04-15",
+      "sum": 487.40,
+      "bonus": 4.87,
+      "bonusEkstra": 0
+    },
+    {
+      "batchid": "BATCH-2026-04-22-002",
+      "butikk": "Kiwi Drammen",
+      "dato": "2026-04-22",
+      "sum": 312.10,
+      "bonus": 3.12
+    }
+  ]
+}
