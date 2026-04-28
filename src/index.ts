@@ -58,6 +58,7 @@ import { getOrCreateDefaultHousehold } from './db/repositories/households.repo';
 import { saveTrumfToken, loadTrumfToken, maskBearer } from './trumf/token';
 import { syncTrumfReceipts } from './trumf/sync';
 import { sendWeeklyPlanEmail } from './email/send-weekly-plan';
+import { runPhotoFlow } from './vision/photo-flow';
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
@@ -133,6 +134,9 @@ async function main() {
       break;
     case "send-plan-email":
       await handleSendPlanEmail(args);
+      break;
+    case "photo":
+      await handlePhoto(args);
       break;
     default:
       console.error(`Unknown command: ${command}`);
@@ -705,6 +709,32 @@ function defaultFraDate(): string {
   return d.toISOString().slice(0, 10);
 }
 
+async function handlePhoto(args: string[]) {
+  const positional = args.filter((a) => !a.startsWith('--'));
+  // Filter out flag values (the next arg after a flag is its value, not a positional).
+  const flagValueIndices = new Set<number>();
+  for (let i = 0; i < args.length; i++) {
+    if (args[i].startsWith('--') && i + 1 < args.length && !args[i + 1].startsWith('--')) {
+      flagValueIndices.add(i + 1);
+    }
+  }
+  const cleanedPositional = args.filter((a, i) => !a.startsWith('--') && !flagValueIndices.has(i));
+  const imagePath = cleanedPositional[0] ?? positional[0];
+  if (!imagePath) {
+    console.error('Usage: photo <path-to-image> [--hint "what dish"]');
+    process.exit(1);
+  }
+  const hint = parseFlagStr(args, '--hint', '');
+  const hh = await getOrCreateDefaultHousehold();
+  console.log(`[photo] household=${hh.id} image=${imagePath}${hint ? ` hint="${hint}"` : ''}`);
+  const result = await runPhotoFlow({
+    householdId: hh.id,
+    imagePath,
+    hint: hint || undefined,
+  });
+  console.log(JSON.stringify(result, null, 2));
+}
+
 async function handleSendPlanEmail(args: string[]) {
   const to = parseFlagStr(args, '--to', '');
   if (!to) {
@@ -764,6 +794,7 @@ AI Features:
                                          Pull Trumf receipts → pantry + plan match
   send-plan-email --to "you@example.com" [--week-start YYYY-MM-DD]
                                          Plan + email weekly meal plan
+  photo <path> [--hint "what dish"]      Identify ingredients in dish photo + apply pantry deltas
 
 Taste Profile:
   profile set --spice 8 --sweet 3        Set taste preferences (1-10)
