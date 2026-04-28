@@ -30,7 +30,8 @@
     "seed:household": "tsx scripts/seed-household.ts",
     "trumf-set-token": "tsx src/index.ts trumf-set-token",
     "trumf-sync": "tsx src/index.ts trumf-sync",
-    "send-plan-email": "tsx src/index.ts send-plan-email"
+    "send-plan-email": "tsx src/index.ts send-plan-email",
+    "photo": "tsx src/index.ts photo"
   },
   "keywords": [],
   "author": "",
@@ -38,6 +39,7 @@
   "type": "module",
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.71",
+    "@ai-sdk/google": "^3.0.64",
     "@google/genai": "^1.46.0",
     "@supabase/supabase-js": "^2.49.0",
     "@vercel/config": "^0.2.1",
