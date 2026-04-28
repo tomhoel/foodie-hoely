@@ -41,6 +41,7 @@ export async function applyAuditReply(args: ApplyReplyArgs): Promise<ApplyReplyR
   if (!args.noEditor) {
     const editor = process.env.EDITOR || 'vi';
     const r = spawnSync(editor, [draftPath], { stdio: 'inherit' });
+    if (r.error) throw new Error(`audit-reply: cannot launch editor '${editor}': ${r.error.message}`);
     if (r.status !== 0) throw new Error(`audit-reply: editor exited with code ${r.status}`);
   }
 
@@ -65,9 +66,18 @@ export async function applyAuditReply(args: ApplyReplyArgs): Promise<ApplyReplyR
 }
 
 async function applyCorrection(c: Correction, householdId: string, supabase: ReturnType<typeof getSupabase>) {
+  const now = new Date().toISOString();
+  // Human-confirmed reality: bump confidence to 1.0 and source to 'manual' so
+  // the same item doesn't immediately get flagged again next audit cycle.
   const upd = await supabase
     .from('pantry_items')
-    .update({ quantity_grams: c.afterGrams, last_seen_at: new Date().toISOString() })
+    .update({
+      quantity_grams: c.afterGrams,
+      confidence: 1.0,
+      last_seen_source: 'manual',
+      last_seen_at: now,
+      updated_at: now,
+    })
     .eq('id', c.pantryItemId);
   if (upd.error) throw new Error(`apply-reply (pantry update ${c.pantryItemId}): ${upd.error.message}`);
   const ins = await supabase.from('pantry_corrections').insert({

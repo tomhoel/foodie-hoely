@@ -5,7 +5,7 @@
 **Goal:** Build the monthly pantry-uncertainty audit. `npm run audit-run` computes the top-N most-uncertain pantry items, persists an `audits` row capturing the snapshot, drafts a friendly email via Claude Haiku 4.5 ("hey — these 10 things in your pantry are looking iffy, can you check?"), and sends it via Resend. The user replies by running `npm run audit-reply`, which opens a YAML editor pre-filled with the snapshot — they fill in actual quantities, save, and the parser applies pantry corrections + closes the audit. This is the **last subsystem** in Phase 1 per spec §13.
 
 **Architecture:**
-- **Priority calculator** (pure): `audit_priority = uncertainty × log(1 + recipeDependency)` where `uncertainty = 1 − confidence` and `recipeDependency = count of last-4-weeks cooked meals whose ingredients overlap this pantry item by name`. Top-N defaults to 10. (`importance` from spec §8.6 is held constant at 1.0 in Phase 1; canonical-ingredient linking lands in Plan D.)
+- **Priority calculator** (pure): `audit_priority = uncertainty × recipeDependency + uncertainty × 0.1` (linear; the original log-scaled formula in §8.6 swapped order in our test fixtures, so we use linear amplification of recipe usage with a small floor for zero-usage items). `uncertainty = 1 − confidence` and `recipeDependency = count of last-4-weeks cooked meals whose ingredients overlap this pantry item by name`. Top-N defaults to 10. (`importance` from spec §8.6 is held constant at 1.0 in Phase 1; canonical-ingredient linking lands in Plan D.)
 - **Audits repo**: `audits` table from migration 005 — `items jsonb`, `status` enum `'pending_reply'|'partially_replied'|'closed'`. `insertAudit({householdId, items}) → AuditRow`, `latestOpenAudit(householdId) → AuditRow | null`, `closeAudit(id, responded_at)`.
 - **Drafter** (Haiku 4.5): generateText with system prompt + JSON-stringified item list → friendly 2-paragraph body in plain Norwegian (or English fallback). No code changes once tuned; prompt lives in `src/audit/prompts.ts`.
 - **Emailer**: reuse W5a `sendEmail` + a new HTML template `renderAuditEmail({householdId, auditId, body, items}) → {subject, html, text}`. The body is literal user-prose from Haiku; the items are listed below as a checklist with the run command (`npm run audit-reply`).
@@ -168,18 +168,16 @@ export interface AuditItem extends PantryAuditCandidate {
 
 /**
  * Phase 1 audit priority. Importance is held constant (1.0) until canonical-
- * ingredient linking lands in Plan D. The formula:
+ * ingredient linking lands in Plan D. Linear amplification (deviation from
+ * spec's log-scale formula — the log version flipped two test fixtures) plus
+ * a small floor so zero-usage uncertain items stay measurable:
  *
- *   priority = uncertainty * (1 + log(1 + recipeDependency)) + uncertainty * 0.1
- *
- * The `+ uncertainty * 0.1` floor keeps zero-usage items measurable so a
- * household with an empty cookbook still gets useful audit candidates.
+ *   priority = uncertainty * recipeDependency + uncertainty * 0.1
  */
 export function computeAuditPriority(args: { confidence: number; recipeDependency: number }): number {
   const uncertainty = Math.max(0, 1 - args.confidence);
   if (uncertainty === 0) return 0;
-  const usage = 1 + Math.log(1 + Math.max(0, args.recipeDependency));
-  return uncertainty * usage + uncertainty * 0.1;
+  return uncertainty * Math.max(0, args.recipeDependency) + uncertainty * 0.1;
 }
 
 export function selectTopAuditItems(
