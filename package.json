@@ -29,7 +29,8 @@
     "plan-week": "tsx src/index.ts plan-week",
     "seed:household": "tsx scripts/seed-household.ts",
     "trumf-set-token": "tsx src/index.ts trumf-set-token",
-    "trumf-sync": "tsx src/index.ts trumf-sync"
+    "trumf-sync": "tsx src/index.ts trumf-sync",
+    "send-plan-email": "tsx src/index.ts send-plan-email"
   },
   "keywords": [],
   "author": "",
@@ -47,6 +48,7 @@
     "pg": "^8.20.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "resend": "^6.12.2",
     "zod": "^4.3.6"
   },
   "devDependencies": {

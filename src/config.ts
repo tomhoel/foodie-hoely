@@ -17,6 +17,10 @@ export const config = {
     plannerModel: "anthropic/claude-sonnet-4.6",
     narratorModel: "anthropic/claude-haiku-4.5",
   },
+  email: {
+    resendApiKey: process.env.RESEND_API_KEY || "",
+    from: process.env.RESEND_FROM || "Foodie <onboarding@resend.dev>",
+  },
   meny: {
     storeId: process.env.MENY_STORE_ID || "7080001150488",
     apiBase: "https://platform-rest-prod.ngdata.no",
