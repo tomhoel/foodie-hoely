@@ -1,5 +1,11 @@
-import { headers } from 'next/headers';
-import { verifyCronAuth, cronAuthResponse } from '../../../../src/api/cron-auth';
+// NOTE: Top-level await for `buildProductionDeps` was attempted but fails at
+// Next.js 16 build time because the Resend client initialisation requires
+// RESEND_API_KEY which is not present in the build environment. The fallback
+// pattern (lazy singleton via getDeps()) is used instead: deps are built on
+// the first real HTTP request and cached for the lifetime of the process.
+
+import { wrapCronHandler, buildProductionDeps } from '../../../../src/api/cron-handler';
+import type { CronHandlerDeps } from '../../../../src/api/cron-handler';
 import { config } from '../../../../src/config';
 import { Orchestrator } from '../../../../src/ingestion/orchestrator';
 import { MenyDirectAdapter } from '../../../../src/ingestion/adapters/meny-direct.adapter';
@@ -9,26 +15,15 @@ import { EtilbudsavisAdapter } from '../../../../src/ingestion/adapters/etilbuds
 import { listDealers } from '../../../../src/db/repositories/offers.repo';
 
 export const runtime = 'nodejs';
-export const maxDuration = 300; // 5 min — sync over all chains
+export const maxDuration = 300;
 
-export async function GET() {
-  const h = await headers();
-  const auth = verifyCronAuth({
-    authorizationHeader: h.get('authorization'),
-    expectedSecret: config.app.cronSecret,
-  });
-  if (!auth.ok) return cronAuthResponse(auth);
-
-  const startedAt = Date.now();
+async function runSyncJob() {
   const orch = new Orchestrator();
   orch.register(new MenyDirectAdapter());
   orch.register(new AFoodAdapter());
-
   if (process.env.KASSALAPP_API_KEY) {
     orch.register(new KassalappAdapter({ apiKey: process.env.KASSALAPP_API_KEY, chains: ['KIWI'] }));
   }
-
-  // Etilbudsavis dealer IDs from DB.
   const dealers = await listDealers().catch(() => []);
   const dealerIdMap: Partial<Record<'MENY' | 'KIWI' | 'SPAR' | 'JOKER', string>> = {};
   for (const d of dealers) {
@@ -68,9 +63,23 @@ export async function GET() {
     }
   }
 
-  return Response.json({
-    ok: true,
-    durationMs: Date.now() - startedAt,
-    adapters: summary,
-  });
+  return { adapters: summary };
+}
+
+let cachedDeps: CronHandlerDeps | null = null;
+async function getDeps(): Promise<CronHandlerDeps> {
+  if (!cachedDeps) {
+    cachedDeps = await buildProductionDeps({
+      cronSecret: config.app.cronSecret,
+      alertEmail: config.app.alertEmail,
+      alertFrom: config.email.from,
+      resendApiKey: config.email.resendApiKey,
+    });
+  }
+  return cachedDeps;
+}
+
+export async function GET(req: Request) {
+  const handler = wrapCronHandler({ name: 'sync', fn: runSyncJob }, await getDeps());
+  return handler(req);
 }
