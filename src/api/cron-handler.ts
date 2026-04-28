@@ -65,6 +65,15 @@ export function wrapCronHandler<T>(args: WrapCronHandlerArgs<T>, deps: CronHandl
             error: alertErr instanceof Error ? alertErr.message : String(alertErr),
           });
         }
+      } else {
+        // Loud about the misconfig: a deploy that forgot FOODIE_ALERT_EMAIL +
+        // FOODIE_RECIPIENT_EMAIL would otherwise swallow every cron failure
+        // silently from an alerting perspective.
+        logEvent({
+          event: 'cron.alert_skipped',
+          name: args.name,
+          reason: 'no alertEmail configured (set FOODIE_ALERT_EMAIL or FOODIE_RECIPIENT_EMAIL)',
+        });
       }
 
       return Response.json({ error: err.message }, { status: 500 });
