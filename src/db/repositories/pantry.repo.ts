@@ -16,6 +16,7 @@ export interface PantryItemRow {
 
 export interface PantrySummaryItem {
   canonicalName: string;   // product_name lowercased — Phase 1 proxy until canonical_ingredient_id resolution lands
+  ean: string | null;
   grams: number;
   confidence: number;
   lastSeenSource: 'receipt' | 'photo' | 'manual';
@@ -36,6 +37,7 @@ export async function getPantrySummary(householdId: string): Promise<PantrySumma
     const r = row as PantryItemRow;
     return {
       canonicalName: r.product_name.toLowerCase().trim(),
+      ean: r.ean,
       grams: Number(r.quantity_grams),
       confidence: Number(r.confidence),
       lastSeenSource: r.last_seen_source,

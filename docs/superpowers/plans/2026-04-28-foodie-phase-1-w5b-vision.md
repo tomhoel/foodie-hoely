@@ -68,6 +68,7 @@ git tag -d phase-1-w5b-complete
 - Vercel Blob upload + 30-day retention — Phase 2
 - Vercel Queue for async vision processing — Phase 2
 - "Tap-to-confirm" reply via email/SMS — Phase 2 frontend
+- `[e]dit` YAML editor branch on the CLI confirmation prompt — Phase 2 (Phase 1 is y/N only)
 - `cooking_signatures` upsert (per-household recipe learning) — Plan D (needs ~20 confirmations to be useful)
 - Multi-photo per dish (improves precision ~8pp per spec) — future
 - Vision quality scoring / human-in-the-loop calibration dashboard — Plan E

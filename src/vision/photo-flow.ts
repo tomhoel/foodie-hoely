@@ -36,6 +36,22 @@ export async function runPhotoFlow(args: PhotoFlowArgs): Promise<PhotoFlowResult
   const mediaType = MEDIA_TYPE_BY_EXT[ext];
   if (!mediaType) throw new Error(`runPhotoFlow: unsupported image extension ${ext}`);
 
+  // 0. Idempotency guard. Re-running on the same image would double-subtract
+  // pantry stock and double-bill Gemini. Force the user to delete the prior
+  // dish_photos row if they really want to re-process.
+  const existingPhoto = await getSupabase()
+    .from('dish_photos')
+    .select('id, vision_status')
+    .eq('household_id', args.householdId)
+    .eq('blob_url', args.imagePath)
+    .maybeSingle();
+  if (existingPhoto.error) throw new Error(`runPhotoFlow (existing check): ${existingPhoto.error.message}`);
+  if (existingPhoto.data) {
+    throw new Error(
+      `Photo already processed (dish_photos.id=${existingPhoto.data.id}, status=${existingPhoto.data.vision_status}). Delete that row in Supabase to reprocess.`
+    );
+  }
+
   const imageBytes = readFileSync(args.imagePath);
 
   // 1. Stage 1 — pure visual.
@@ -58,7 +74,9 @@ export async function runPhotoFlow(args: PhotoFlowArgs): Promise<PhotoFlowResult
   console.log('[photo] running Stage 2 (pantry-constrained reconciliation)...');
   const stage2 = await runStage2({
     stage1,
-    pantry: pantry.map((p) => ({ name: p.canonicalName, ean: null, grams: p.grams })),
+    // Real EANs help the LLM emit verified matchedPantryEan strings rather
+    // than hallucinating them. Pass the actual ean (may be null for legacy rows).
+    pantry: pantry.map((p) => ({ name: p.canonicalName, ean: p.ean, grams: p.grams })),
     recentMeals,
     hint: args.hint,
   });
@@ -116,6 +134,9 @@ export async function runPhotoFlow(args: PhotoFlowArgs): Promise<PhotoFlowResult
     const afterGrams = Math.max(0, beforeGrams - grams);
 
     if (existingId) {
+      // Phase 1 deliberately does NOT update the row's confidence — receipt-
+      // sourced rows are more trustworthy than a vision guess, and bumping
+      // confidence here would dilute that signal.
       const upd = await supabase
         .from('pantry_items')
         .update({ quantity_grams: afterGrams, last_seen_at: new Date().toISOString() })
@@ -130,6 +151,9 @@ export async function runPhotoFlow(args: PhotoFlowArgs): Promise<PhotoFlowResult
       });
       if (ins.error) throw new Error(`pantry_corrections insert: ${ins.error.message}`);
     } else {
+      // No prior pantry stock: record a 0g entry so future restocks can find
+      // and grow the row by EAN/name. No pantry_corrections audit row — there's
+      // no "before" delta to record against.
       const ins = await supabase.from('pantry_items').insert({
         household_id: args.householdId,
         ean: ing.matchedPantryEan ?? null,

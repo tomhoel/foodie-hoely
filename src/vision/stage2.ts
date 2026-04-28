@@ -20,6 +20,7 @@ export async function runStage2(args: RunStage2Args): Promise<Stage2ResultType> 
   });
 
   const { object } = await generateObject({
+    // See stage1.ts for the cast rationale (Gateway resolves the string ID).
     model: args.model ?? ('google/gemini-3-flash' as unknown as LanguageModel),
     schema: Stage2Result,
     system: STAGE2_SYSTEM,

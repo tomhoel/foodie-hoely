@@ -15,6 +15,9 @@ export interface RunStage1Args {
  */
 export async function runStage1(args: RunStage1Args): Promise<Stage1ResultType> {
   const { object } = await generateObject({
+    // The bare model ID string is resolved at runtime by the AI Gateway
+    // (with AI_GATEWAY_API_KEY set). The cast keeps the SDK's strict
+    // LanguageModel union happy — Gateway accepts these provider/model IDs.
     model: args.model ?? ('google/gemini-3-flash' as unknown as LanguageModel),
     schema: Stage1Result,
     system: STAGE1_SYSTEM,
