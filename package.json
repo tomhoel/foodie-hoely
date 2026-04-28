@@ -33,7 +33,10 @@
     "send-plan-email": "tsx src/index.ts send-plan-email",
     "photo": "tsx src/index.ts photo",
     "audit-run": "tsx src/index.ts audit-run",
-    "audit-reply": "tsx src/index.ts audit-reply"
+    "audit-reply": "tsx src/index.ts audit-reply",
+    "signin": "tsx src/index.ts signin",
+    "signin-verify": "tsx src/index.ts signin-verify",
+    "whoami": "tsx src/index.ts whoami"
   },
   "keywords": [],
   "author": "",

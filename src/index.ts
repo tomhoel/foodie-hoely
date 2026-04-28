@@ -61,6 +61,8 @@ import { sendWeeklyPlanEmail } from './email/send-weekly-plan';
 import { runPhotoFlow } from './vision/photo-flow';
 import { runAudit } from './audit/send-audit';
 import { applyAuditReply } from './audit/apply-reply';
+import { saveAuthToken, loadAuthToken, maskToken } from './auth/token';
+import { config } from './config';
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
@@ -145,6 +147,15 @@ async function main() {
       break;
     case "audit-reply":
       await handleAuditReply(args);
+      break;
+    case "signin":
+      await handleSignin(args);
+      break;
+    case "signin-verify":
+      await handleSigninVerify(args);
+      break;
+    case "whoami":
+      await handleWhoami(args);
       break;
     default:
       console.error(`Unknown command: ${command}`);
@@ -789,6 +800,67 @@ async function handleAuditReply(_args: string[]) {
   console.log(JSON.stringify(result, null, 2));
 }
 
+async function handleSignin(args: string[]) {
+  const email = parseFlagStr(args, '--email', '');
+  if (!email) {
+    console.error('Usage: signin --email "you@example.com"');
+    process.exit(1);
+  }
+  const url = `${config.app.baseUrl}/api/auth/start`;
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!r.ok) {
+    console.error(`[signin] ${r.status}: ${await r.text()}`);
+    process.exit(1);
+  }
+  const j = await r.json();
+  console.log(`[signin] ${j.message}`);
+  console.log(`Run: npm run signin-verify -- --email "${email}" --otp <6-digit-code>`);
+}
+
+async function handleSigninVerify(args: string[]) {
+  const email = parseFlagStr(args, '--email', '');
+  const otp = parseFlagStr(args, '--otp', '');
+  if (!email || !otp) {
+    console.error('Usage: signin-verify --email "you@example.com" --otp 123456');
+    process.exit(1);
+  }
+  const url = `${config.app.baseUrl}/api/auth/verify`;
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email, otp }),
+  });
+  if (!r.ok) {
+    console.error(`[signin-verify] ${r.status}: ${await r.text()}`);
+    process.exit(1);
+  }
+  const j = await r.json();
+  const t = saveAuthToken({
+    accessToken: j.accessToken,
+    refreshToken: j.refreshToken,
+    expiresAt: j.expiresAt,
+    email: j.email,
+  });
+  console.log(`[signin-verify] saved token ${maskToken(t.accessToken)} for ${t.email}`);
+  console.log(`Try: curl -H "Authorization: Bearer $(jq -r .accessToken ~/.foodie/auth-token.json)" ${config.app.baseUrl}/api/me`);
+}
+
+async function handleWhoami(_args: string[]) {
+  const t = loadAuthToken();
+  if (!t) {
+    console.error('No auth token. Run signin + signin-verify first.');
+    process.exit(1);
+  }
+  const r = await fetch(`${config.app.baseUrl}/api/me`, {
+    headers: { authorization: `Bearer ${t.accessToken}` },
+  });
+  console.log(JSON.stringify(await r.json(), null, 2));
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function parseFlag(args: string[], flag: string): string | undefined {
@@ -826,6 +898,9 @@ AI Features:
   audit-run --to "you@example.com" [--top 10]
                                          Send pantry-uncertainty audit email
   audit-reply                            Open last open audit + apply corrections
+  signin --email "you@example.com"       Send sign-in OTP to your email
+  signin-verify --email --otp 123456     Exchange OTP for a session token (saved at ~/.foodie/auth-token.json)
+  whoami                                 Show current authed user + household
 
 Taste Profile:
   profile set --spice 8 --sweet 3        Set taste preferences (1-10)

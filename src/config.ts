@@ -25,6 +25,7 @@ export const config = {
     recipientEmail: process.env.FOODIE_RECIPIENT_EMAIL || "",
     cronSecret: process.env.CRON_SECRET || "",
     alertEmail: process.env.FOODIE_ALERT_EMAIL || process.env.FOODIE_RECIPIENT_EMAIL || "",
+    baseUrl: process.env.FOODIE_BASE_URL || "http://localhost:3000",
   },
   meny: {
     storeId: process.env.MENY_STORE_ID || "7080001150488",
